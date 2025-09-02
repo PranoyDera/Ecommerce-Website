@@ -1,0 +1,209 @@
+"use client";
+
+import React, { useEffect, useState } from "react";
+import { ProductType } from "@/type";
+import Link from "next/link";
+import Image from "next/image";
+import { Plus, ShoppingCart, Star } from "lucide-react";
+import useCartStore from "../app/Stores/cartStore";
+import { toast } from "react-toastify";
+import { useRouter } from "next/navigation";
+import BuyNowModal from "./BuynowModal";
+
+function ProductCard({ product }: { product: ProductType }) {
+  const [quantity, setQuantity] = useState(1);
+  const [showModal, setShowModal] = useState(false);
+  const [addresses, setAddresses] = useState<any[]>([]);
+  const [selectedAddress, setSelectedAddress] = useState<string | null>(null);
+  const [paymentMethod, setPaymentMethod] = useState<string | null>(null);
+
+  const { addToCart } = useCartStore();
+  const router = useRouter();
+
+  // Load addresses from localStorage
+  useEffect(() => {
+    const stored = localStorage.getItem("addresses");
+    if (stored) setAddresses(JSON.parse(stored));
+  }, []);
+
+  const handleAddToCart = async () => {
+    try {
+      const userId = localStorage.getItem("userId");
+      if (!userId) {
+        toast.error("Please login first!");
+        return;
+      }
+
+      const response = await fetch(`http://localhost:5000/api/cart/${userId}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          productId: product.id,
+          title: product.title,
+          description: product.description,
+          price: product.price,
+          quantity,
+          image: product.images[0],
+        }),
+      });
+
+      if (!response.ok) throw new Error(`Server error: ${response.status}`);
+
+      const data = await response.json();
+      console.log("Cart updated:", data);
+      toast.success(`${quantity} item(s) added to cart`);
+      window.dispatchEvent(new Event("cartUpdated")); // notify cart
+    } catch (error) {
+      console.error("Add to cart failed:", error);
+      toast.error("Failed to add to cart");
+    }
+  };
+
+  const handleBuyNow = () => {
+    setShowModal(true);
+  };
+
+const handleConfirmOrder = (address: any, paymentMethod: string) => {
+  console.log("LOG:", address, paymentMethod);
+
+  if (!address) {
+    toast.error("Please select an address");
+    return;
+  }
+  if (!paymentMethod) {
+    toast.error("Please select a payment method");
+    return;
+  }
+
+  const orderData = {
+    productId: product.id,
+    title: product.title,
+    price: product.price,
+    quantity,
+    image: product.images[0],
+    address,          // ✅ use the prop, not selectedAddress
+    paymentMethod,    // ✅ from props
+  };
+
+  localStorage.setItem("order", JSON.stringify(orderData));
+  localStorage.setItem("checkoutMode", "buyNow");
+  localStorage.setItem("subtotal", JSON.stringify(product.price * quantity));
+  localStorage.setItem("total", JSON.stringify(product.price * quantity));
+  localStorage.setItem("selectedAddress",JSON.stringify(address));
+  localStorage.setItem("selectedPaymentMethod",JSON.stringify(paymentMethod));
+
+  if (paymentMethod === "Cash on Delivery") {
+    router.push("/order/confirmation");
+  } else {
+    toast.info("Redirecting to payment gateway...");
+  }
+
+  // Save in orders history
+  let orders = JSON.parse(localStorage.getItem("orders") || "[]");
+  orders.push({
+    ...orderData,
+    date: new Date().toISOString(),
+  });
+  localStorage.setItem("orders", JSON.stringify(orders));
+
+  setShowModal(false);
+};
+
+
+  const increaseQuantity = () => setQuantity((prev) => prev + 1);
+  const decreaseQuantity = () =>
+    setQuantity((prev) => (prev > 1 ? prev - 1 : 1));
+
+  
+
+  return (
+    <>
+      <div className="rounded-3xl overflow-hidden shadow-md bg-white flex flex-col">
+        {/* IMAGE */}
+        <Link href={`/products/${product.id}`}>
+          <div className="relative w-full h-60">
+            <Image
+              src={product.images[0]}
+              alt={product.title}
+              fill
+              className="object-contain p-4"
+            />
+          </div>
+        </Link>
+
+        {/* INFO SECTION */}
+        <div className="p-4 flex flex-col gap-2 flex-1">
+          {/* Title + Price */}
+          <div className="flex justify-between items-start gap-4">
+            <h2 className="font-semibold text-base overflow-hidden whitespace-nowrap text-ellipsis">
+              {product.title}
+            </h2>
+            <p className="font-semibold text-base">
+              ${product.price.toFixed(2)}
+            </p>
+          </div>
+
+          {/* Description */}
+          <p className="text-xs text-gray-500 line-clamp-2">
+            {product.description}
+          </p>
+
+          {/* Rating + Discount */}
+          <div className="flex justify-between items-center text-xs mt-2">
+            <span className="flex items-center gap-1 text-yellow-500">
+              <Star size={14} /> {product.rating?.toFixed(1) ?? "N/A"}
+            </span>
+            {product.discountPercentage && (
+              <span className="text-green-600 font-medium">
+                {product.discountPercentage}% OFF
+              </span>
+            )}
+          </div>
+
+          {/* Quantity Adjuster */}
+          <div className="flex items-center justify-center w-full gap-3 mt-3">
+            <button
+              onClick={decreaseQuantity}
+              className="px-3 py-1 bg-gray-200 rounded-md text-sm font-medium hover:bg-gray-300"
+            >
+              -
+            </button>
+            <span className="min-w-[30px] text-center font-semibold">
+              {quantity}
+            </span>
+            <button
+              onClick={increaseQuantity}
+              className="px-3 py-1 bg-gray-200 rounded-md text-sm font-medium hover:bg-gray-300"
+            >
+              +
+            </button>
+          </div>
+
+          {/* Buttons */}
+          <button
+            onClick={handleAddToCart}
+            className="mt-4 bg-black text-white py-2 rounded-lg text-sm font-medium hover:bg-gray-800 transition cursor-pointer"
+          >
+            Add to Cart
+          </button>
+          <button
+            onClick={handleBuyNow}
+            className="mt-2 bg-orange-500 text-white py-2 rounded-lg text-sm font-medium hover:bg-orange-700 transition cursor-pointer"
+          >
+            Buy Now
+          </button>
+        </div>
+      </div>
+
+      {/* MODAL */}
+      {showModal && (
+         <BuyNowModal
+          onClose={() => setShowModal(false)}
+          onConfirm={handleConfirmOrder}
+        />
+      )}
+    </>
+  );
+}
+
+export default ProductCard;
