@@ -5,6 +5,7 @@ import React, { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { ArrowLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useOrders } from "@/app/context/orderContext";
 
 interface Item {
   productId: string;
@@ -28,63 +29,44 @@ interface Order {
 }
 
 export default function OrderList() {
-  const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState<string | null>(null);
   const router = useRouter();
+  const { orders, setOrders, fetchOrders } = useOrders();
 
-  const fetchOrders = async () => {
+  // Load orders on mount
+  useEffect(() => {
+    fetchOrders().finally(() => setLoading(false));
+  }, [fetchOrders]);
+
+  // Delete order handler
+  const deleteOrder = async (orderId: string) => {
     try {
-      const userId = localStorage.getItem("userId");
       const token = sessionStorage.getItem("accessToken");
-
-      if (!userId || !token) {
-        toast.error("You must be logged in to view orders.");
+      if (!token) {
+        toast.error("You must be logged in to delete orders.");
         return;
       }
 
-      const res = await fetch(`http://localhost:5000/api/orders/${userId}`, {
-        method: "GET",
+      const res = await fetch(`http://localhost:5000/api/orders/${orderId}`, {
+        method: "DELETE",
         headers: {
-          "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
       });
 
       const data = await res.json();
-
-      if (res.ok) {
-        setOrders(data);
-      } else {
-        toast.error(data.message || "Failed to fetch orders");
-      }
-    } catch (error) {
-      console.error(error);
-      toast.error("Something went wrong!");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchOrders();
-  }, []);
-
-  const deleteOrder = async (orderId: string) => {
-    try {
-      const res = await fetch(`http://localhost:5000/api/orders/${orderId}`, {
-        method: "DELETE",
-      });
-
-      const data = await res.json();
       setOpen(false);
+
       if (res.ok) {
-        toast("Order deleted permanently!",{
-          className:"font-large",
+        toast("Order deleted permanently!", {
+          className: "font-large",
           duration: 3000,
         });
-        fetchOrders();
+
+        // ✅ Update context state directly
+        setOrders((prev) => prev.filter((order) => order._id !== orderId));
       } else {
         toast.error(data.message || "❌ Failed to delete order");
       }
@@ -106,9 +88,9 @@ export default function OrderList() {
         <ArrowLeft size={18} /> Back
       </button>
 
-     <h1 className="scroll-m-20 text-center text-4xl font-bold tracking-tight text-balance mb-3">
-      My Orders:
-    </h1>
+      <h1 className="scroll-m-20 text-center text-4xl font-bold tracking-tight text-balance mb-3">
+        My Orders:
+      </h1>
 
       {orders.length === 0 ? (
         <div className="bg-white/70 backdrop-blur-md p-10 rounded-2xl shadow-lg text-center">
@@ -151,10 +133,7 @@ export default function OrderList() {
               {/* Order Items */}
               <div className="space-y-4 divide-y">
                 {order.items.map((item, i) => (
-                  <div
-                    key={i}
-                    className="flex items-center justify-between py-4"
-                  >
+                  <div key={i} className="flex items-center justify-between py-4">
                     <div className="flex items-center gap-4">
                       <img
                         src={item.image || "/placeholder.png"}
@@ -162,9 +141,7 @@ export default function OrderList() {
                         className="w-20 h-20 object-cover rounded-lg border"
                       />
                       <div>
-                        <p className="font-medium text-gray-800">
-                          {item.title}
-                        </p>
+                        <p className="font-medium text-gray-800">{item.title}</p>
                         <p className="text-sm text-gray-500">
                           {item.quantity} × ${item.price.toFixed(2)}
                         </p>
@@ -182,9 +159,7 @@ export default function OrderList() {
                   </p>
                   <p className="text-sm text-gray-600">
                     Payment Method:{" "}
-                    <span className="capitalize font-medium">
-                      {order.paymentMethod}
-                    </span>
+                    <span className="capitalize font-medium">{order.paymentMethod}</span>
                   </p>
                 </div>
                 <button

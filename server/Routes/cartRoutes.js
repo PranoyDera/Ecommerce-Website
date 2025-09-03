@@ -23,7 +23,7 @@ router.get("/:userId", async (req, res) => {
  */
 router.post("/:userId", async (req, res) => {
   try {
-    const { productId, title, description, price, quantity, image } = req.body;
+    const { productId, title, description, price, quantity, image,discountPercentage } = req.body;
 
     let cart = await Cart.findOne({ userId: req.params.userId });
 
@@ -37,6 +37,7 @@ router.post("/:userId", async (req, res) => {
           price,
           quantity: Number(quantity),
           image,
+          discountPercentage
         }],
         totalAmount: price * Number(quantity),
       });
@@ -55,6 +56,7 @@ router.post("/:userId", async (req, res) => {
           price,
           quantity: Number(quantity),
           image,
+          discountPercentage
         });
       }
 

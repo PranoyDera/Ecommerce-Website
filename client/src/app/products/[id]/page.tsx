@@ -6,16 +6,16 @@ import { useParams, useRouter } from "next/navigation";
 import { ShoppingCart } from "lucide-react";
 import useCartStore from "@/app/Stores/cartStore";
 import { toast } from "react-toastify";
-import Loader from "@/app/components/Loader";
+import Loader from "../../../components/Loader";
+import { useCart } from "@/app/context/cartContext";
 
 const ProductPage = () => {
   const params = useParams();
   const router = useRouter();
-  const { addToCart } = useCartStore();
-
   const [product, setProduct] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [quantity, setQuantity] = useState(1);
+  const {addToCart} = useCart();
 
   // ✅ Fetch single product from DummyJSON
   useEffect(() => {
@@ -48,40 +48,29 @@ const ProductPage = () => {
   ).toFixed(2);
 
   // ✅ Handle Add to Cart
-  const handleAddToCart = async () => {
-    try {
-      const userId = localStorage.getItem("userId");
-      if (!userId) {
-        toast.error("Please login first!");
-        return;
-      }
-  
-      const response = await fetch(`http://localhost:5000/api/cart/${userId}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          productId: product.id,
-          title: product.title,
-          description: product.description,
-          price: product.price,
-          quantity,
-          image: product.images[0],
-        }),
-      });
-  
-      if (!response.ok) throw new Error(`Server error: ${response.status}`);
-  
-      const data = await response.json();
-      console.log("Cart updated:", data);
-      toast.success(`${quantity} item(s) added to cart`);
-  
-      // ✅ Notify other components (like ShoppingCartIcon)
-      window.dispatchEvent(new Event("cartUpdated"));
-    } catch (error) {
-      console.error("Add to cart failed:", error);
-      toast.error("Failed to add to cart");
+const handleAddToCart = async () => {
+  try {
+    const userId = localStorage.getItem("userId");
+    if (!userId) {
+      toast.error("Please login first!");
+      return;
     }
-  };
+
+    await addToCart(userId, {
+      productId: product.id,
+      title: product.title,
+      price: product.price,
+      quantity,
+      image: product.images[0],
+      discountPercentage: product.discountPercentage,
+    });
+
+    toast.success(`${quantity} item(s) added to cart`);
+  } catch (error) {
+    console.error("Add to cart failed:", error);
+    toast.error("Failed to add to cart");
+  }
+};
 
   // ✅ Handle Buy Now
 const handleBuyNow = () => {

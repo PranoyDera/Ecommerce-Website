@@ -7,6 +7,8 @@ import Image from "next/image";
 import PaymentForm from "../../components/PaymentForm";
 import { ShippingFormInputs } from "@/type";
 import AddressForm from "../../components/AddressForm";
+import { useCart } from "../context/cartContext";
+import { toast } from "sonner";
 
 // ✅ CartItem (backend schema)
 type CartItem = {
@@ -47,6 +49,7 @@ export default function CartPage() {
   const [addresses, setAddresses] = useState<Address[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingAddresses, setLoadingAddresses] = useState(true);
+  const {removeFromCart} = useCart();
 
   const userId =
     typeof window !== "undefined" ? localStorage.getItem("userId") : null;
@@ -54,9 +57,7 @@ export default function CartPage() {
     typeof window !== "undefined" ? localStorage.getItem("token") : null;
 
   // 🔹 Fetch cart
-  useEffect(() => {
-    if (!userId) return;
-    const fetchCart = async () => {
+  const fetchCart = async () => {
       try {
         const res = await fetch(`http://localhost:5000/api/cart/${userId}`);
         const data = await res.json();
@@ -67,6 +68,8 @@ export default function CartPage() {
         setLoading(false);
       }
     };
+  useEffect(() => {
+    if (!userId) return;
     fetchCart();
   }, [userId]);
 
@@ -91,29 +94,15 @@ export default function CartPage() {
   }, [token]);
 
   // 🔹 Remove item
-  const removeFromCart = async (productId: string) => {
-    try {
-      if (!userId) return;
-
-      await fetch(`http://localhost:5000/api/cart/${userId}/${productId}`, {
-        method: "DELETE",
-      });
-
-      setCart((prev) =>
-        prev
-          ? {
-              ...prev,
-              items: prev.items.filter((item) => item.productId !== productId),
-            }
-          : prev
-      );
-
-      window.dispatchEvent(new Event("cartUpdated"));
-    } catch (err) {
-      console.error("Error removing item:", err);
-    }
-  };
-
+   const handleRemove = async({productId}:{productId:string}) => {
+        const userId = localStorage.getItem("userId");
+        if(!userId){
+          toast("User not logged in")
+          return;
+        }
+        await removeFromCart(userId,productId);
+        fetchCart();
+   }
   // ✅ Totals
   const subTotal =
     cart?.items.reduce((acc, item) => acc + item.price * item.quantity, 0) ?? 0;
@@ -147,7 +136,7 @@ export default function CartPage() {
   ];
 
   if (loading) return <p className="text-center">Loading cart...</p>;
-
+  console.log("total discount:",totalDiscount)
   return (
     <div className="w-[95%] rounded-2xl mx-auto flex flex-col gap-8 items-center justify-center my-4 bg-[url('/cartPage.jpg')] bg-cover bg-no-repeat bg-top p-4">
       {/* TITLE */}
@@ -211,7 +200,9 @@ export default function CartPage() {
 
                     {/* DELETE */}
                     <button
-                      onClick={() => removeFromCart(item.productId)}
+                      onClick={() => {
+                      console.log("productID:",item.productId);
+                      handleRemove({productId:item.productId})}}
                       className="w-8 h-8 rounded-full hover:bg-red-300 transition-all duration-300 bg-red-100 text-red-400 flex items-center justify-center cursor-pointer"
                     >
                       <Trash2 className="w-3 h-3" />

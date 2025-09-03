@@ -1,10 +1,12 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import SuccessModal from "../../../components/successModal";
 import { useRouter } from "next/navigation";
+import { useOrders } from "@/app/context/orderContext";
+import { useCart } from "@/app/context/cartContext";
 
 interface CartItem {
   productId: string;
@@ -16,9 +18,9 @@ interface CartItem {
 
 export default function OrderConfirmation() {
   const router = useRouter();
-  const userId = typeof window !== "undefined" ? localStorage.getItem("userId") : null;
+  const userId =
+    typeof window !== "undefined" ? localStorage.getItem("userId") : null;
 
-  const [cart, setCart] = useState<CartItem[]>([]);
   const [orderTotal, setOrderTotal] = useState<string>("0");
   const [loading, setLoading] = useState<boolean>(true);
 
@@ -33,13 +35,17 @@ export default function OrderConfirmation() {
 
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // ✅ Fetch cart OR Buy Now depending on checkoutMode
+  const { fetchOrders } = useOrders();
+  const { cart, setCart, fetchCart } = useCart();
+
+  // ✅ Load user info, address, payment
   useEffect(() => {
     if (typeof window === "undefined") return;
 
     setUsername(localStorage.getItem("username"));
     setEmail(localStorage.getItem("email"));
 
+    // Address
     const storedAddr = localStorage.getItem("selectedAddress");
     if (storedAddr) {
       try {
@@ -49,23 +55,27 @@ export default function OrderConfirmation() {
       }
     }
 
+    // Payment
     const rawPayment = localStorage.getItem("selectedPaymentMethod");
     if (rawPayment) {
       try {
         const parsed = JSON.parse(rawPayment);
         const val = typeof parsed === "string" ? parsed : rawPayment;
-        if (val === "cod") setPaymentMethod("Cash on Delivery");
+        if (val === "cod" || val === "Cash on Delivery")
+          setPaymentMethod("Cash on Delivery");
         else if (val === "card") setPaymentMethod("Credit/Debit Card");
-        else if (val === "Online")setPaymentMethod("Online");
-        else if (val === "Cash on Delivery") setPaymentMethod("Cash on Delivery")
+        else if (val === "Online") setPaymentMethod("Online");
       } catch {
         setPaymentMethod(rawPayment);
       }
     }
+  }, []);
 
+  // ✅ Load cart or buyNow order
+  const loadCart = useCallback(async () => {
     const checkoutMode = localStorage.getItem("checkoutMode");
 
-    // 🛒 If user came from Buy Now
+    // 🛒 Buy Now flow
     if (checkoutMode === "buyNow") {
       const buyNowOrder = localStorage.getItem("order");
       if (buyNowOrder) {
@@ -89,79 +99,84 @@ export default function OrderConfirmation() {
       }
     }
 
-    // 🛒 Else, load from Cart
+    // 🛒 Cart flow
     if (!userId) {
       setLoading(false);
       return;
     }
 
-    const fetchCart = async () => {
-      try {
-        const res = await fetch(`http://localhost:5000/api/cart/${userId}`);
-        if (!res.ok) throw new Error("Failed to fetch cart");
+    try {
+      await fetchCart(userId); // ✅ fetchCart updates context internally
+    } catch (err) {
+      console.error("Error fetching cart:", err);
+      setCart([]);
+    } finally {
+      setLoading(false);
+    }
+  }, [userId, fetchCart, setCart]);
 
-        const data = await res.json();
-        setCart(data.items || []);
-        setOrderTotal(data.totalAmount?.toString() || "0");
-      } catch (err) {
-        console.error("Error fetching cart:", err);
-        setCart([]);
-      } finally {
-        setLoading(false);
-      }
-    };
+  useEffect(() => {
+    loadCart();
+  }, [loadCart]);
 
-    fetchCart();
-  }, [userId]);
+  // ✅ Keep orderTotal updated when cart changes
+  useEffect(() => {
+    if (cart && Array.isArray(cart)) {
+      const total = cart.reduce(
+        (sum, item) => sum + item.price * item.quantity,
+        0
+      );
+      setOrderTotal(total.toString());
+    }
+  }, [cart]);
 
   // ✅ Place order
-const handleOrderPlace = async () => {
-  if (!userId || cart.length === 0) {
-    alert("No items in cart to place an order.");
-    return;
-  }
-
-  try {
-    const orderPayload = {
-      userId,
-      items: cart,
-      totalAmount: orderTotal,
-      paymentMethod,
-      address: selectedAddress,
-    };
-
-    const orderRes = await fetch("http://localhost:5000/api/orders", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(orderPayload),
-    });
-
-    if (!orderRes.ok) throw new Error("Failed to place order");
-
-    const checkoutMode = localStorage.getItem("checkoutMode");
-
-    if (checkoutMode === "buyNow") {
-      // ✅ Just clear Buy Now temp data
-      localStorage.removeItem("order");
-    } else {
-      // ✅ Cart checkout: clear cart in DB
-      await fetch(`http://localhost:5000/api/cart/${userId}`, {
-        method: "DELETE",
-      });
+  const handleOrderPlace = async () => {
+    if (!userId || cart.length === 0) {
+      alert("No items in cart to place an order.");
+      return;
     }
 
-    // ✅ Reset checkoutMode so it doesn’t interfere with future orders
-    localStorage.removeItem("checkoutMode");
+    try {
+      const orderPayload = {
+        userId,
+        items: cart,
+        totalAmount: orderTotal,
+        paymentMethod,
+        address: selectedAddress,
+      };
 
-    setCart([]);
-    setOrderTotal("0");
-    setIsModalOpen(true);
-  } catch (err) {
-    console.error("Error placing order:", err);
-    alert("❌ Failed to place order, please try again.");
-  }
-};
+      const orderRes = await fetch("http://localhost:5000/api/orders", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(orderPayload),
+      });
 
+      if (!orderRes.ok) throw new Error("Failed to place order");
+
+      const checkoutMode = localStorage.getItem("checkoutMode");
+
+      if (checkoutMode === "buyNow") {
+        localStorage.removeItem("order");
+      } else {
+        await fetch(`http://localhost:5000/api/cart/${userId}`, {
+          method: "DELETE",
+        });
+        setCart([]);
+        await fetchCart(userId);
+      }
+
+      localStorage.removeItem("checkoutMode");
+
+      setCart([]);
+      setOrderTotal("0");
+      setIsModalOpen(true);
+      fetchOrders();
+    } catch (err) {
+      console.error("Error placing order:", err);
+      alert("❌ Failed to place order, please try again.");
+    }
+  };
 
   if (loading) return <p className="text-center text-gray-500">Loading...</p>;
 
@@ -174,11 +189,16 @@ const handleOrderPlace = async () => {
         title="Order Placed!"
         message="The item will be delivered soon!"
       />
-      <div className="flex justify-between items-center pb-6 mb-6 ">
+
+      {/* Header */}
+      <div className="flex justify-between items-center pb-6 mb-6">
         <h1 className="text-2xl font-bold text-gray-800">Order Confirmation</h1>
         <div className="flex items-center gap-6">
           <p className="text-lg font-semibold text-gray-600">
-            Order Total: <span className="text-xl font-bold">${Number(orderTotal).toFixed(2)}</span>
+            Order Total:{" "}
+            <span className="text-xl font-bold">
+              ${Number(orderTotal).toFixed(2)}
+            </span>
           </p>
           <button
             onClick={handleOrderPlace}
@@ -188,65 +208,78 @@ const handleOrderPlace = async () => {
           </button>
         </div>
       </div>
-
       <div className="w-full mx-auto bg-white p-4 mb-4">
+        {" "}
         <div className="grid md:grid-cols-2 gap-6 pb-6 mb-6">
-          {/* User Info */}
+          {" "}
+          {/* User Info */}{" "}
           <div className="rounded-xl p-4">
+            {" "}
             <div className="flex justify-between items-center border-b-2 border-black border-dashed">
-              <h2 className="text-lg font-semibold">Your Information</h2>
-            </div>
-            <p className="mt-2 text-gray-600">{username}</p>
-            <p className="text-gray-600">{email}</p>
-          </div>
-
-          {/* Shipping */}
+              {" "}
+              <h2 className="text-lg font-semibold">Your Information</h2>{" "}
+            </div>{" "}
+            <p className="mt-2 text-gray-600">{username}</p>{" "}
+            <p className="text-gray-600">{email}</p>{" "}
+          </div>{" "}
+          {/* Shipping */}{" "}
           <div className="rounded-xl p-4">
+            {" "}
             <div className="flex justify-between items-center border-b-2 border-black border-dashed">
-              <h2 className="text-lg font-semibold">Shipping Address</h2>
+              {" "}
+              <h2 className="text-lg font-semibold">Shipping Address</h2>{" "}
               <Link href="/cart?step=2">
+                {" "}
                 <button className="text-blue-500 hover:underline text-sm cursor-pointer">
-                  Edit
-                </button>
-              </Link>
-            </div>
+                  {" "}
+                  Edit{" "}
+                </button>{" "}
+              </Link>{" "}
+            </div>{" "}
             {selectedAddress ? (
               <>
-                <p className="mt-2 text-gray-600">{selectedAddress.address}</p>
+                {" "}
+                <p className="mt-2 text-gray-600">
+                  {selectedAddress.address}
+                </p>{" "}
                 <p className="text-gray-600">
-                  {selectedAddress.city}, {selectedAddress.country}
-                </p>
+                  {" "}
+                  {selectedAddress.city}, {selectedAddress.country}{" "}
+                </p>{" "}
               </>
             ) : (
               <p className="mt-2 text-gray-500">No address selected</p>
-            )}
-          </div>
-
-          {/* Payment */}
+            )}{" "}
+          </div>{" "}
+          {/* Payment */}{" "}
           <div className="rounded-xl p-4">
+            {" "}
             <div className="flex justify-between items-center border-b-2 border-black border-dashed">
-              <h2 className="text-lg font-semibold">Payment</h2>
-            </div>
-            <div className="mt-2 flex items-center gap-2 text-gray-600">
-              Selected Payment Method: {paymentMethod ?? "Not Selected"}
-            </div>
-          </div>
-
-          {/* Billing */}
+              {" "}
+              <h2 className="text-lg font-semibold">Payment</h2>{" "}
+            </div>{" "}
+            <p className="mt-2 text-gray-600">
+              {" "}
+              Selected Payment Method: {paymentMethod ?? "Not Selected"}{" "}
+            </p>{" "}
+          </div>{" "}
+          {/* Billing */}{" "}
           <div className="rounded-xl p-4">
+            {" "}
             <div className="flex justify-between items-center border-b-2 border-black border-dashed">
-              <h2 className="text-lg font-semibold">Billing Address</h2>
-            </div>
-            <p className="mt-2 text-gray-600">{username}</p>
+              {" "}
+              <h2 className="text-lg font-semibold">Billing Address</h2>{" "}
+            </div>{" "}
+            <p className="mt-2 text-gray-600">{username}</p>{" "}
             <p className="text-gray-600">
+              {" "}
               {selectedAddress?.address} <br /> {selectedAddress?.city},{" "}
-              {selectedAddress?.country}
-            </p>
-            <p className="text-gray-600">(315) 396-7461</p>
-          </div>
-        </div>
+              {selectedAddress?.country}{" "}
+            </p>{" "}
+            <p className="text-gray-600">(315) 396-7461</p>{" "}
+          </div>{" "}
+        </div>{" "}
       </div>
-
       {/* Cart Table */}
       <div>
         {cart.length === 0 ? (

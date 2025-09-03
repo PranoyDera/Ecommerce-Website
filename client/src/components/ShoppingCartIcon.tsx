@@ -2,32 +2,14 @@
 
 import { ShoppingCart } from "lucide-react";
 import Link from "next/link";
-import React, { useEffect, useState } from "react";
+import React from "react";
+import { useCart } from "../app/context/cartContext";
 
-function ShoppingCartIcon() {
-  const [cartItems, setCartItems] = useState<any[]>([]);
-
-  const fetchCart = async () => {
-    const userId = localStorage.getItem("userId");
-    if (!userId) return;
-    try {
-      const res = await fetch(`http://localhost:5000/api/cart/${userId}`);
-      const data = await res.json();
-      setCartItems(data.items || []);
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
-  useEffect(() => {
-    fetchCart(); // initial load
-    // ✅ Listen for cart updates
-    window.addEventListener("cartUpdated", fetchCart);
-    return () => window.removeEventListener("cartUpdated", fetchCart);
-  }, []);
-
-  const totalItems = cartItems.reduce((sum, item) => sum + item.quantity, 0);
-
+function CartIcon() {
+  const { cart } = useCart();
+  const totalItems = cart.length
+    console.log("totalItems:",totalItems)
+    console.log(cart)
   return (
     <div className="relative">
       <Link href="/cart" className="relative">
@@ -58,4 +40,4 @@ function ShoppingCartIcon() {
   );
 }
 
-export default ShoppingCartIcon;
+export default CartIcon;

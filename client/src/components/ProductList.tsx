@@ -143,7 +143,7 @@ const totalPages = Math.ceil(total / limit);
     <PaginationItem>
       <PaginationPrevious
         onClick={() => setPage((prev) => prev - 1)}
-        className="cursor-pointer"
+        className="cursor-pointer hover:bg-gray-200 text-gray-900"
         aria-disabled={page === 1}
       />
     </PaginationItem>
@@ -154,7 +154,7 @@ const totalPages = Math.ceil(total / limit);
         <PaginationLink
           isActive={page === pageNumber}
           onClick={() => setPage(pageNumber)}
-          className="cursor-pointer"
+          className={`cursor-pointer hover:bg-gray-200 ${page === pageNumber ? `border border-gray-400`:``} text-gray-900`}
         >
           {pageNumber}
         </PaginationLink>
@@ -165,7 +165,7 @@ const totalPages = Math.ceil(total / limit);
     <PaginationItem>
       <PaginationNext
         onClick={() => setPage((prev) => prev + 1)}
-        className="cursor-pointer"
+        className="cursor-pointer hover:bg-gray-200 text-gray-900"
         aria-disabled={page === totalPages}
       />
     </PaginationItem>

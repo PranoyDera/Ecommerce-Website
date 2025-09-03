@@ -1,31 +1,12 @@
 "use client";
 
-import { Bell, Package } from "lucide-react";
+import { Package } from "lucide-react";
 import Link from "next/link";
-import React, { useEffect, useState } from "react";
+import React from "react";
+import { useOrders } from "../app/context/orderContext";
 
 function OrderIcon() {
-  const [orders, setOrders] = useState<any[]>([]);
-
-  const fetchOrders = async () => {
-    const userId = localStorage.getItem("userId");
-    if (!userId) return;
-    try {
-      const res = await fetch(`http://localhost:5000/api/orders/${userId}`);
-      const data = await res.json();
-      setOrders(data || []); // make sure your API returns { orders: [...] }
-    } catch (err) {
-      console.error("Error fetching orders:", err);
-    }
-  };
-
-  useEffect(() => {
-    fetchOrders(); // initial load
-
-    // ✅ Listen for new orders (optional)
-    window.addEventListener("ordersUpdated", fetchOrders);
-    return () => window.removeEventListener("ordersUpdated", fetchOrders);
-  }, []);
+  const { orders } = useOrders(); // reactive to context updates
 
   const totalOrders = orders.length;
 

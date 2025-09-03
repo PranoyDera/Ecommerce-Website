@@ -5,6 +5,8 @@ import { Geist, Geist_Mono, Poppins, Roboto } from "next/font/google";
 import ClientLayout from "./clientLayout";
 import { CheckoutProvider } from "./context/checkoutContext";
 import { Toaster } from "sonner";
+import { OrderProvider } from "./context/orderContext";
+import { CartProvider } from "./context/cartContext";
 
 // Google + Local Fonts with variables
 const poppins = Poppins({
@@ -46,8 +48,11 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} ${poppins.variable} ${roboto.variable}`}
     >
       <body className="antialiased">
+        <OrderProvider>
+          <CartProvider>
         <ClientLayout>
           <CheckoutProvider>
+          
             {children}
             <Toaster 
             position="top-center"
@@ -58,6 +63,8 @@ export default function RootLayout({
             }}/>
           </CheckoutProvider>
         </ClientLayout>
+        </CartProvider>
+        </OrderProvider>
       </body>
     </html>
   );

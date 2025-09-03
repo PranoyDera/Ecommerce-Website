@@ -1,14 +1,15 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { ProductType } from "@/type";
+import { cartItemType, ProductType } from "@/type";
 import Link from "next/link";
 import Image from "next/image";
 import { Plus, ShoppingCart, Star } from "lucide-react";
 import useCartStore from "../app/Stores/cartStore";
-import { toast } from "react-toastify";
 import { useRouter } from "next/navigation";
 import BuyNowModal from "./BuynowModal";
+import { useCart } from "@/app/context/cartContext";
+import {toast} from "sonner";
 
 function ProductCard({ product }: { product: ProductType }) {
   const [quantity, setQuantity] = useState(1);
@@ -16,8 +17,8 @@ function ProductCard({ product }: { product: ProductType }) {
   const [addresses, setAddresses] = useState<any[]>([]);
   const [selectedAddress, setSelectedAddress] = useState<string | null>(null);
   const [paymentMethod, setPaymentMethod] = useState<string | null>(null);
-
-  const { addToCart } = useCartStore();
+  const { addToCart } = useCart();
+//  const { addToCart } = useCartStore();
   const router = useRouter();
 
   // Load addresses from localStorage
@@ -27,37 +28,29 @@ function ProductCard({ product }: { product: ProductType }) {
   }, []);
 
   const handleAddToCart = async () => {
-    try {
-      const userId = localStorage.getItem("userId");
-      if (!userId) {
-        toast.error("Please login first!");
-        return;
-      }
-
-      const response = await fetch(`http://localhost:5000/api/cart/${userId}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          productId: product.id,
-          title: product.title,
-          description: product.description,
-          price: product.price,
-          quantity,
-          image: product.images[0],
-        }),
-      });
-
-      if (!response.ok) throw new Error(`Server error: ${response.status}`);
-
-      const data = await response.json();
-      console.log("Cart updated:", data);
-      toast.success(`${quantity} item(s) added to cart`);
-      window.dispatchEvent(new Event("cartUpdated")); // notify cart
-    } catch (error) {
-      console.error("Add to cart failed:", error);
-      toast.error("Failed to add to cart");
+  try {
+    const userId = localStorage.getItem("userId");
+    if (!userId) {
+      toast.error("Please login first!");
+      return;
     }
-  };
+
+    await addToCart(userId, {
+      productId: product.id,
+      title: product.title,
+      price: product.price,
+      quantity,
+      image: product.images[0],
+      discountPercentage: product.discountPercentage,
+    });
+
+    toast.success(`${quantity} item(s) added to cart`);
+  } catch (error) {
+    console.error("Add to cart failed:", error);
+    toast.error("Failed to add to cart");
+  }
+};
+
 
   const handleBuyNow = () => {
     setShowModal(true);
@@ -181,7 +174,7 @@ const handleConfirmOrder = (address: any, paymentMethod: string) => {
 
           {/* Buttons */}
           <button
-            onClick={handleAddToCart}
+            onClick={()=>handleAddToCart()}
             className="mt-4 bg-black text-white py-2 rounded-lg text-sm font-medium hover:bg-gray-800 transition cursor-pointer"
           >
             Add to Cart

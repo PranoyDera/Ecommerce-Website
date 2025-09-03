@@ -7,7 +7,8 @@ const cartItemSchema = new mongoose.Schema(
     description: { type: String },
     price: { type: Number, required: true },
     quantity: { type: Number, required: true, min: 1 },
-    image: { type: String }, // store product image url
+    image: { type: String },
+    discountPercentage:{type:Number},
   },
   { _id: false }
 );
