@@ -2,18 +2,19 @@
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
-import Image from "next/image";
-import { CometCard } from "../../components/ui/comet-card"; // ⬅️ import your CometCard
 import ConfirmModal from "@/components/ConfirmModal";
 import { toast } from "sonner";
-import { Button } from "@/components/ui/moving-border";
 import { useRouter } from "next/navigation";
+
+// 👇 Import the reusable BlogCard
+import BlogCard from "@/components/BlogCard";
 
 const BlogPage = () => {
   const [blogs, setBlogs] = useState<any[]>([]);
   const [open, setOpen] = useState(false);
   const [selectedBlog, setSelectedBlog] = useState<string | null>(null);
   const router = useRouter();
+
   useEffect(() => {
     const fetchBlogs = async () => {
       try {
@@ -36,7 +37,6 @@ const BlogPage = () => {
   const handleDelete = async (id: string) => {
     try {
       const token = sessionStorage.getItem("accessToken");
-
       const res = await fetch(`http://localhost:5000/api/blogs/${id}`, {
         method: "DELETE",
         headers: {
@@ -70,46 +70,23 @@ const BlogPage = () => {
           Stay informed with our latest insights
         </p>
 
-        {/* Use CometCard instead of FocusCards */}
+        {/* Blog Cards */}
         <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-6">
           {blogs.map((blog) => (
-            <CometCard
+            <BlogCard
               key={blog._id}
-              className="bg-white rounded-2xl overflow-hidden"
-            >
-              <div className="h-48 w-full relative">
-                <Image
-                  src={blog.image || "/contactsBG.jpg"}
-                  alt={blog.title}
-                  fill
-                  className="object-cover rounded-t-2xl"
-                />
-              </div>
-              <div className="p-4">
-                <h3 className="text-lg font-semibold text-gray-900">
-                  {blog.title}
-                </h3>
-                <p className="text-sm text-gray-600 mt-2 line-clamp-3">
-                  {blog.content || "No preview available..."}
-                </p>
-                <div className="flex justify-between items-center w-full">
-                  <Link href={`/Blog/${blog._id}`}>
-                    <button className="mt-4 px-4 py-2 text-sm font-medium bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition">
-                      Read More
-                    </button>
-                  </Link>
-                  <button
-                    className="mt-4 px-4 py-2 text-sm font-medium bg-red-700 text-white rounded-lg hover:bg-red-500 transition"
-                    onClick={() => {
-                      setSelectedBlog(blog._id);
-                      setOpen(true);
-                    }}
-                  >
-                    Delete Blog
-                  </button>
-                </div>
-              </div>
-            </CometCard>
+              id={blog._id}
+              image={blog.image}
+              title={blog.title}
+              description={blog.content}
+              author={blog.author || "Unknown"}
+              authorImage="/userImage.png"
+              readMoreLink={`/Blog/${blog._id}`}
+              onDelete={(id) => {
+                setSelectedBlog(id);
+                setOpen(true);
+              }}
+            />
           ))}
         </div>
       </div>
@@ -119,14 +96,18 @@ const BlogPage = () => {
         <h2 className="text-2xl font-bold text-gray-900 my-2">
           Write Your Own Blog...
         </h2>
-        <button className="p-[2px] relative w-full">
+        <button
+          onClick={() => router.push("/Blog/Create-Blog")}
+          className="p-[2px] relative w-full"
+        >
           <div className="absolute inset-0 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-2xl" />
-          <div className="px-8 py-2  bg-black rounded-2xl  relative group transition duration-200 text-white hover:bg-transparent">
+          <div className="px-8 py-2 bg-black rounded-2xl relative group transition duration-200 text-white hover:bg-transparent">
             Create Blog
           </div>
         </button>
       </div>
 
+      {/* Confirm Delete Modal */}
       <ConfirmModal
         isOpen={open}
         onClose={() => setOpen(false)}
