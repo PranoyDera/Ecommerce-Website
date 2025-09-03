@@ -1,13 +1,30 @@
-import React from 'react';
-import { Search } from 'lucide-react';
+"use client";
 
-function SearchBar() {
+import { PlaceholdersAndVanishInput } from "./ui/placeholders-and-vanish-input";
+
+export function SearchBar() {
+  const placeholders = [
+    "What's the first rule of Fight Club?",
+    "Who is Tyler Durden?",
+    "Where is Andrew Laeddis Hiding?",
+    "Write a Javascript method to reverse a string",
+    "How to assemble your own PC?",
+  ];
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    console.log(e.target.value);
+  };
+  const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    console.log("submitted");
+  };
   return (
-    <div className='hidden sm:flex items-center gap-2 rounded-md ring-1 ring-gray-200 px-2 py-1 shadow-md'>
-       <Search className='w-4 h-4 text-gray-500'/>
-       <input id='SearchBar' placeholder='Search...' className='text-sm outline-0'/>
+    <div className="h-[40px] w-[500px] flex flex-col justify-center  items-center px-4">
+      <PlaceholdersAndVanishInput
+        placeholders={placeholders}
+        onChange={handleChange}
+        onSubmit={onSubmit}
+      />
     </div>
-  )
+  );
 }
-
-export default SearchBar

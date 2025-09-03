@@ -43,10 +43,10 @@ const Footer = () => {
           <div>
             <h4 className="font-semibold mb-3 text-white">Explore</h4>
             <ul className="space-y-2 text-gray-400">
-              <li>All Products</li>
-              <li>Best Seller</li>
-              <li>New Arrivals</li>
-              <li>Sale</li>
+              <li><Link href={"/products"}>All Products</Link></li>
+              <li><Link href={"/Best-Seller"}>Best Seller</Link></li>
+              <li><Link href={"/New-Arrivals"}>New Arrivals</Link></li>
+              <li><Link href={"/Sale"}>Sale</Link></li>
             </ul>
           </div>
 

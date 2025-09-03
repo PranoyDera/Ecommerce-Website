@@ -3,7 +3,7 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import React, { useEffect, useState } from 'react'
-import SearchBar from './SearchBar'
+import { SearchBar } from './SearchBar'
 import { Home } from 'lucide-react'
 import ShoppingCartIcon from './ShoppingCartIcon'
 import { useRouter } from 'next/navigation'
@@ -35,7 +35,7 @@ function Navbar() {
   }, [])
 
   return (
-    <nav className="w-[95%] flex justify-between border border-gray-200 mx-auto items-center mt-2 rounded-4xl px-4">
+    <nav className="w-[95%] flex justify-between border border-gray-200 mx-auto items-center mt-2 rounded-4xl px-4 ">
       {/* Left */}
       <Link href="/">
         <Image
@@ -46,10 +46,10 @@ function Navbar() {
           className="w-20 h-6 md:w-50 md:h-15"
         />
       </Link>
-
+      <SearchBar />
       {/* Right */}
-      <div className="flex items-center gap-6">
-        <SearchBar />
+      <div className="flex items-center justify-center gap-6">
+        
         <Link href="/">
           <Home className="w-4 h-4 text-gray-500" />
         </Link>
