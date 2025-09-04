@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 import { Geist, Geist_Mono, Poppins, Roboto } from "next/font/google";
-import ClientLayout from "./clientLayout";
+import ClientLayout from "./ClientLayout";
 import { CheckoutProvider } from "./context/checkoutContext";
 import { Toaster } from "sonner";
 import { OrderProvider } from "./context/orderContext";

@@ -111,7 +111,7 @@ const handleConfirmOrder = (address: any, paymentMethod: string) => {
 
   return (
     <>
-      <div className="rounded-3xl overflow-hidden shadow-md bg-white flex flex-col">
+      <div className="rounded-3xl overflow-hidden shadow-md bg-white flex flex-col transition-transform transform hover:scale-105 hover:shadow-xl p-4 ">
         {/* IMAGE */}
         <Link href={`/products/${product.id}`}>
           <div className="relative w-full h-60">

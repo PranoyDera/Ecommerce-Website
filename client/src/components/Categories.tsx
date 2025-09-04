@@ -52,7 +52,7 @@ const Categories = () => {
   }, [selectedCategory]);
 
   return (
-    <div className="relative flex items-center w-full my-6">
+    <div className="relative flex items-center w-full mb-6">
       {/* Left Button */}
       <button
         onClick={() => scroll("left")}
