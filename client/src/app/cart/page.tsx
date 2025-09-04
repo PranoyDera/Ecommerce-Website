@@ -9,6 +9,8 @@ import { ShippingFormInputs } from "@/type";
 import AddressForm from "../../components/AddressForm";
 import { useCart } from "../context/cartContext";
 import { toast } from "sonner";
+import { LoaderThree } from "@/components/ui/loader";
+import Loader from "@/components/Loader2";
 
 // ✅ CartItem (backend schema)
 type CartItem = {
@@ -135,8 +137,11 @@ export default function CartPage() {
     { id: 3, title: "Payment Method" },
   ];
 
-  if (loading) return <p className="text-center">Loading cart...</p>;
-  console.log("total discount:",totalDiscount)
+  if (loading) return (
+  <div className="h-screen w-[95%] mx-auto rounded-3xl bg-white my-4 items-center justify-center flex">
+    <Loader/>
+  </div>
+  )
   return (
     <div className="w-[95%] rounded-2xl mx-auto flex flex-col gap-8 items-center justify-center my-4 bg-[url('/cartPage.jpg')] bg-cover bg-no-repeat bg-top p-4">
       {/* TITLE */}
@@ -220,7 +225,7 @@ export default function CartPage() {
                 {addresses.map((addr) => (
                   <div
                     key={addr?._id}
-                    className="p-4 rounded-lg border bg-white/80 cursor-pointer hover:border-orange-500"
+                    className="p-4 rounded-lg border bg-white/80 cursor-pointer hover:border-orange-500 hover:scale-105 transition-transform duration-300"
                     onClick={() => {
                       localStorage.setItem(
                         "selectedAddress",

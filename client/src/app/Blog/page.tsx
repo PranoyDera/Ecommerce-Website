@@ -8,12 +8,14 @@ import { useRouter } from "next/navigation";
 
 // 👇 Import the reusable BlogCard
 import BlogCard from "@/components/BlogCard";
+import Loader from "@/components/Loader2";
 
 const BlogPage = () => {
   const [blogs, setBlogs] = useState<any[]>([]);
   const [open, setOpen] = useState(false);
   const [selectedBlog, setSelectedBlog] = useState<string | null>(null);
   const router = useRouter();
+  const [loading,setLoading] = useState<boolean>(true);
 
   useEffect(() => {
     const fetchBlogs = async () => {
@@ -27,6 +29,7 @@ const BlogPage = () => {
         });
         const data = await res.json();
         setBlogs(data);
+        setLoading(false);
       } catch (error) {
         console.error("Error fetching blogs:", error);
       }
@@ -59,6 +62,10 @@ const BlogPage = () => {
     }
   };
 
+
+  
+
+
   return (
     <div className="min-h-screen bg-gray-100 px-6 py-12 w-[95%] mx-auto rounded-3xl my-4">
       <div className="max-w-6xl mx-auto">
@@ -71,25 +78,30 @@ const BlogPage = () => {
         </p>
 
         {/* Blog Cards */}
-        <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-6">
-          {blogs.map((blog) => (
-            <BlogCard
-              key={blog._id}
-              id={blog._id}
-              image={blog.image}
-              title={blog.title}
-              description={blog.content}
-              author={blog.author || "Unknown"}
-              authorImage="/userImage.png"
-              readMoreLink={`/Blog/${blog._id}`}
-              onDelete={(id) => {
-                setSelectedBlog(id);
-                setOpen(true);
-              }}
-            />
-          ))}
-        </div>
-      </div>
+  {blogs.length === 0 ? (
+    // Show Loader if no blogs
+    <Loader />
+  ) : (
+    <div className="min-h-[300px] flex items-center gap-4">
+      {blogs.map((blog) => (
+        <BlogCard
+          key={blog._id}
+          id={blog._id}
+          image={blog.image}
+          title={blog.title}
+          description={blog.content}
+          author={blog.author || "Unknown"}
+          authorImage="/userImage.png"
+          readMoreLink={`/Blog/${blog._id}`}
+          onDelete={(id) => {
+            setSelectedBlog(id);
+            setOpen(true);
+          }}
+        />
+      ))}
+    </div>
+  )}
+</div>
 
       {/* Create Blog */}
       <div className="max-w-6xl mx-auto my-8 flex flex-col justify-center items-center">

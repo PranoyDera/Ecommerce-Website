@@ -7,6 +7,7 @@ import SuccessModal from "../../../components/successModal";
 import { useRouter } from "next/navigation";
 import { useOrders } from "@/app/context/orderContext";
 import { useCart } from "@/app/context/cartContext";
+import Loader from "@/components/Loader2";
 
 interface CartItem {
   productId: string;
@@ -64,7 +65,7 @@ export default function OrderConfirmation() {
         if (val === "cod" || val === "Cash on Delivery")
           setPaymentMethod("Cash on Delivery");
         else if (val === "card") setPaymentMethod("Credit/Debit Card");
-        else if (val === "Online") setPaymentMethod("Online");
+        else if (val === "online") setPaymentMethod("Online");
       } catch {
         setPaymentMethod(rawPayment);
       }
@@ -178,7 +179,12 @@ export default function OrderConfirmation() {
     }
   };
 
-  if (loading) return <p className="text-center text-gray-500">Loading...</p>;
+  if (loading) return (
+    <div className="h-screen w-[95%] mx-auto rounded-3xl bg-white my-4 items-center justify-center flex">
+    <Loader/>
+  </div>
+  ) 
+
 
   return (
     <div className="min-h-screen bg-gray-100 py-12 px-20 w-[95%] mx-auto my-4 rounded-2xl">

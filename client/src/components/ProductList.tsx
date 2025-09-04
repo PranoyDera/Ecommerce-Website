@@ -6,7 +6,7 @@ import Categories from "./Categories";
 import ProductCard from "./ProductCard";
 import Link from "next/link";
 import Filter from "./Filter";
-import Loader from "./Loader";
+import Loader from "./Loader2";
 import { GridSmallBackground } from "../components/ui/GridSmall";
 import {
   Pagination,
@@ -129,7 +129,7 @@ const ProductList = ({
 
   if (loading) {
     return (
-      <div className="mx-auto my-4 flex justify-center items-center">
+      <div className="rounded-3xl h-screen mx-auto my-4 flex justify-center items-center">
         <Loader />
       </div>
     );

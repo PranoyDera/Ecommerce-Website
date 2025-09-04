@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { ArrowLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useOrders } from "@/app/context/orderContext";
+import Loader from "@/components/Loader2";
 
 interface Item {
   productId: string;
@@ -76,7 +77,11 @@ export default function OrderList() {
     }
   };
 
-  if (loading) return <p className="text-center mt-10">Loading orders...</p>;
+  if (loading) return (
+    <div className="h-screen w-[95%] mx-auto rounded-3xl bg-white my-4 items-center justify-center flex">
+    <Loader/>
+  </div>
+  )
 
   return (
     <div className="min-h-screen bg-[url('/userpage.jpg')] bg-cover bg-center px-6 py-12 w-[95%] mx-auto rounded-3xl my-4">

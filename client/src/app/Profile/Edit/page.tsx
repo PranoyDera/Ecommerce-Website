@@ -4,6 +4,7 @@ import Image from "next/image";
 import { Camera, ArrowLeft } from "lucide-react";
 import { toast } from "react-toastify";
 import { useRouter } from "next/navigation";
+import Loader from "@/components/Loader2";
 
 export default function EditProfilePage() {
   const [formData, setFormData] = useState({
@@ -109,7 +110,11 @@ export default function EditProfilePage() {
     }
   };
 
-  if (loading) return <p className="text-center mt-10">Loading...</p>;
+  if (loading) return (
+    <div className="h-screen w-[95%] mx-auto rounded-3xl bg-white my-4 items-center justify-center flex">
+    <Loader/>
+  </div>
+  )
 
   return (
   <div className="min-h-screen bg-[url('/userpage.jpg')] bg-cover bg-center flex items-center justify-center p-6 w-[95%] mx-auto rounded-3xl my-4">

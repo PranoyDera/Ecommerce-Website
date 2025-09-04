@@ -1,15 +1,27 @@
-'use client'
+"use client";
 
-import React, { useState } from 'react'
-import { PaymentFormInputs, PaymentFormSchema } from '@/type'
-import { zodResolver } from '@hookform/resolvers/zod'
-import { SubmitHandler, useForm } from 'react-hook-form'
-import { Banknote, CreditCard, ShoppingCartIcon, Smartphone } from 'lucide-react'
-import { useRouter } from 'next/navigation'
-import Image from 'next/image'
+import React, { useState } from "react";
+import { PaymentFormInputs, PaymentFormSchema } from "@/type";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { SubmitHandler, useForm } from "react-hook-form";
+import {
+  Banknote,
+  CreditCard,
+  ShoppingCartIcon,
+  Smartphone,
+} from "lucide-react";
+import { useRouter } from "next/navigation";
+import Image from "next/image";
+import { Button } from "./button";
 
-function PaymentForm({ setShippingForm }: { setShippingForm: (data: PaymentFormInputs) => void }) {
-  const [paymentMethod, setPaymentMethod] = useState<"cod" | "online" | "card" | null>(null)
+function PaymentForm({
+  setShippingForm,
+}: {
+  setShippingForm: (data: PaymentFormInputs) => void;
+}) {
+  const [paymentMethod, setPaymentMethod] = useState<
+    "cod" | "online" | "card" | null
+  >(null);
 
   const {
     register,
@@ -17,21 +29,18 @@ function PaymentForm({ setShippingForm }: { setShippingForm: (data: PaymentFormI
     formState: { errors },
   } = useForm<PaymentFormInputs>({
     resolver: zodResolver(PaymentFormSchema),
-  })
+  });
 
-  const router = useRouter()
+  const router = useRouter();
 
   const handlePaymentForm: SubmitHandler<PaymentFormInputs> = (data) => {
     // save card form if card selected
     if (paymentMethod === "card") {
-      setShippingForm(data)
+      setShippingForm(data);
     }
     // redirect to success/next step
-    router.push("/order/confirmation")
-  }
-  
-  
-
+    router.push("/order/confirmation");
+  };
 
   return (
     <div className="flex flex-col gap-6">
@@ -39,35 +48,69 @@ function PaymentForm({ setShippingForm }: { setShippingForm: (data: PaymentFormI
       {!paymentMethod && (
         <div className="flex flex-col gap-4">
           <h2 className="text-lg font-semibold">Choose Payment Method</h2>
-          <button
-            className="h-[40px] p-2 border rounded-3xl hover:bg-green-900 bg-green-700 text-white flex items-center justify-center font-semibold gap-2"
+
+          {/* Cash on Delivery */}
+          <Button
+            variant="outline"
+            className={`h-[50px] p-3 border rounded-3xl font-semibold flex items-center justify-center gap-2
+                transition-transform duration-300 hover:scale-105 hover:shadow-lg text-white
+                ${
+                  paymentMethod === "cod"
+                    ? "shadow-xl border-2 border-green-500"
+                    : ""
+                }
+                bg-gradient-to-r from-green-400 to-green-700 hover:from-green-500 hover:to-green-800 cursor-pointer`}
             onClick={() => setPaymentMethod("cod")}
           >
-            <Banknote/>
+            <Banknote className="w-5 h-5" />
             Cash on Delivery
-          </button>
-          <button
-            className="h-[40px] p-3 border rounded-3xl hover:bg-blue-900 bg-blue-700 text-white font-semibold flex items-center justify-center gap-2"
+          </Button>
+
+          {/* Online Payment */}
+          <Button
+            className={`h-[50px] p-3 border rounded-3xl font-semibold flex items-center justify-center gap-2
+                transition-transform duration-300 hover:scale-105 hover:shadow-lg text-white
+                ${
+                  paymentMethod === "online"
+                    ? "shadow-xl border-2 border-blue-500"
+                    : ""
+                }
+                bg-gradient-to-r from-blue-400 to-blue-700 hover:from-blue-500 hover:to-blue-800 cursor-pointer`}
             onClick={() => setPaymentMethod("online")}
           >
-            <Smartphone/>
+            <Smartphone className="w-5 h-5" />
             Online Payment
-          </button>
-          <button
-            className="h-[40px] p-3 rounded-3xl bg-black hover:bg-black/90 text-white font-semibold flex items-center justify-center gap-2"
+          </Button>
+
+          {/* Card Payment */}
+          <Button
+            className={`h-[50px] p-3 border rounded-3xl font-semibold flex items-center justify-center gap-2
+                transition-transform duration-300 hover:scale-105 hover:shadow-lg text-white
+                ${
+                  paymentMethod === "card"
+                    ? "shadow-xl border-2 border-purple-500"
+                    : ""
+                }
+                bg-gradient-to-r from-gray-700 to-black hover:from-gray-800 hover:to-black cursor-pointer`}
             onClick={() => setPaymentMethod("card")}
           >
-            <CreditCard/>
+            <CreditCard className="w-5 h-5" />
             Card Payment
-          </button>
+          </Button>
         </div>
       )}
 
       {/* Step 2: Show card form if card selected */}
       {paymentMethod === "card" && (
-        <form className="flex flex-col gap-4" onSubmit={handleSubmit(handlePaymentForm)}>
+        <form
+          className="flex flex-col gap-4"
+          onSubmit={handleSubmit(handlePaymentForm)}
+        >
           <div className="flex flex-col gap-1">
-            <label htmlFor="cardholder" className="text-xs font-semibold text-black">
+            <label
+              htmlFor="cardholder"
+              className="text-xs font-semibold text-black"
+            >
               Name on Card
             </label>
             <input
@@ -78,12 +121,17 @@ function PaymentForm({ setShippingForm }: { setShippingForm: (data: PaymentFormI
               {...register("CardHolder")}
             />
             {errors.CardHolder && (
-              <p className="text-xs text-red-500">{errors.CardHolder.message}</p>
+              <p className="text-xs text-red-500">
+                {errors.CardHolder.message}
+              </p>
             )}
           </div>
 
           <div className="flex flex-col gap-1">
-            <label htmlFor="CardNumber" className="text-xs font-semibold text-black">
+            <label
+              htmlFor="CardNumber"
+              className="text-xs font-semibold text-black"
+            >
               Card Number
             </label>
             <input
@@ -94,12 +142,17 @@ function PaymentForm({ setShippingForm }: { setShippingForm: (data: PaymentFormI
               {...register("CardNumber")}
             />
             {errors.CardNumber && (
-              <p className="text-xs text-red-500">{errors.CardNumber.message}</p>
+              <p className="text-xs text-red-500">
+                {errors.CardNumber.message}
+              </p>
             )}
           </div>
 
           <div className="flex flex-col gap-1">
-            <label htmlFor="ExpirationDate" className="text-xs font-semibold text-black">
+            <label
+              htmlFor="ExpirationDate"
+              className="text-xs font-semibold text-black"
+            >
               Expiration Date
             </label>
             <input
@@ -110,7 +163,9 @@ function PaymentForm({ setShippingForm }: { setShippingForm: (data: PaymentFormI
               {...register("expirationDate")}
             />
             {errors.expirationDate && (
-              <p className="text-xs text-red-500">{errors.expirationDate.message}</p>
+              <p className="text-xs text-red-500">
+                {errors.expirationDate.message}
+              </p>
             )}
           </div>
 
@@ -125,7 +180,9 @@ function PaymentForm({ setShippingForm }: { setShippingForm: (data: PaymentFormI
               placeholder="CVV"
               {...register("cvv")}
             />
-            {errors.cvv && <p className="text-xs text-red-500">{errors.cvv.message}</p>}
+            {errors.cvv && (
+              <p className="text-xs text-red-500">{errors.cvv.message}</p>
+            )}
           </div>
 
           <div className="flex items-center gap-2 mt-4">
@@ -138,9 +195,12 @@ function PaymentForm({ setShippingForm }: { setShippingForm: (data: PaymentFormI
             className="w-full bg-gray-800 text-white p-2 rounded-lg cursor-pointer 
             flex items-center justify-center gap-2 hover:bg-gray-900 transition-all duration-300"
             type="submit"
-            onClick={()=>{
-              localStorage.setItem("selectedPaymentMethod",JSON.stringify(paymentMethod))
-              router.push("order/confirmation")
+            onClick={() => {
+              localStorage.setItem(
+                "selectedPaymentMethod",
+                JSON.stringify(paymentMethod)
+              );
+              router.push("order/confirmation");
             }}
           >
             Checkout
@@ -155,12 +215,14 @@ function PaymentForm({ setShippingForm }: { setShippingForm: (data: PaymentFormI
           <h3 className="text-lg font-medium">You selected Cash on Delivery</h3>
           <button
             className="w-full bg-gray-800 text-white p-2 rounded-lg"
-            onClick={() =>{ 
-              localStorage.setItem("selectedPaymentMethod",JSON.stringify(paymentMethod))
-              localStorage.setItem("checkoutMode","cart")
-              router.push("/order/confirmation")
-            }
-            }
+            onClick={() => {
+              localStorage.setItem(
+                "selectedPaymentMethod",
+                JSON.stringify(paymentMethod)
+              );
+              localStorage.setItem("checkoutMode", "cart");
+              router.push("/order/confirmation");
+            }}
           >
             Confirm Order
           </button>
@@ -172,15 +234,19 @@ function PaymentForm({ setShippingForm }: { setShippingForm: (data: PaymentFormI
           <button
             className="w-full bg-blue-600 text-white p-2 rounded-lg"
             onClick={() => {
-              localStorage.setItem('selectedPaymentMethod',JSON.stringify(paymentMethod))
-              router.push("/order/confirmation")}}
+              localStorage.setItem(
+                "selectedPaymentMethod",
+                JSON.stringify(paymentMethod)
+              );
+              router.push("/order/confirmation");
+            }}
           >
             Pay Now
           </button>
         </div>
       )}
     </div>
-  )
+  );
 }
 
-export default PaymentForm
+export default PaymentForm;

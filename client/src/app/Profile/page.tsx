@@ -104,7 +104,7 @@ export default function ProfilePage() {
             onClick={() => {
               router.push("/Profile/Edit");
             }}
-            className="mt-5 bg-black text-white px-6 py-2.5 rounded-xl hover:bg-gray-800 transition-all duration-200 shadow-md"
+            className="mt-5 bg-black text-white px-6 py-2.5 rounded-xl hover:bg-gray-800 transition-all cursor-pointer shadow-md hover:scale-105 duration-300"
           >
             Edit Profile
           </button>
