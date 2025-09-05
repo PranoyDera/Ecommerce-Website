@@ -23,26 +23,26 @@ const ContactPage = () => {
             <div>
               <h3 className="font-semibold">Location</h3>
               <p>
-                Anantara OceanFront Resort <br />
-                123 Serenity Bay Road <br />
-                Koh Samui, Thailand 84320 <br />
-                Mon–Sun | 08:00 – 22:00 (local time)
+                Ecospace Building 2B <br />
+                Street Number 372 <br />
+                Eco-space buisness park, New Town, 5532 <br />
+                Mon–Fri | 09:00 – 20:00 (local time)
               </p>
             </div>
 
             <div>
               <h3 className="font-semibold">Social Media</h3>
-              <p>Instagram | LinkedIn | Facebook | TikTok</p>
+              <p>Instagram | LinkedIn | Facebook </p>
             </div>
 
             <div>
               <h3 className="font-semibold">Email</h3>
-              <p>stay@anantararesort.com</p>
+              <p>pranoydera@gmail.com</p>
             </div>
 
             <div>
               <h3 className="font-semibold">Contact</h3>
-              <p>+66 77 123 456</p>
+              <p>+91 8240514868</p>
             </div>
           </div>
         </div>

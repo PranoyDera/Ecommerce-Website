@@ -169,7 +169,7 @@ export default function OrderConfirmation() {
 
       localStorage.removeItem("checkoutMode");
 
-      setCart([]);
+
       setOrderTotal("0");
       setIsModalOpen(true);
       fetchOrders();
