@@ -14,10 +14,10 @@ export default function ClientLayout({
   const pathname = usePathname();
   const router = useRouter();
 
-  const hideLayout = pathname === "/login" || pathname === "/signup";
+  const hideLayout = pathname === "/login" || pathname === "/signup" || pathname === "/verify-otp";
 
 useEffect(() => {
-  if (pathname === "/login" || pathname === "/signup") return;
+  if (pathname === "/login" || pathname === "/signup" || pathname === "/verify-otp") return;
 
   const token = sessionStorage.getItem("accessToken");
 

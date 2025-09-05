@@ -15,10 +15,11 @@ export default function SignupPage() {
 
     const data = await res.json();
     if (res.ok) {
-      toast.success("Signup Successful");
-      router.push("/login");
+      toast.success("Signup Successful. Please verify OTP.");
+      // Redirect to OTP page with email
+      router.push(`/verify-otp?email=${encodeURIComponent(form.email)}`);
     } else {
-      toast.error("Error Occurred In Signup!");
+      toast.error(data.message || "Error Occurred In Signup!");
     }
   };
 
@@ -29,7 +30,6 @@ export default function SignupPage() {
         { name: "name", type: "text", label: "Enter Your Name", placeholder: "john doe" },
         { name: "email", type: "email", label: "Enter Your Email", placeholder: "johndoe@example.com" },
         { name: "password", type: "password", label: "Enter a Password", placeholder: "********" },
-        { name: "phone", type: "text", label: "Enter Your Phone Number", placeholder: "+91-XXXXX-XXXXX" },
       ]}
       onSubmit={handleSignup}
       footerText="Already have an account?"

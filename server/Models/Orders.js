@@ -20,7 +20,6 @@ const orderSchema = new mongoose.Schema(
     },
     paymentMethod: {
       type: String,
-      enum: ["Cash on Delivery", "card", "upi"],
       default: "cod",
     },
   },

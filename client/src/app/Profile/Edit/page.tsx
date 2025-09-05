@@ -5,6 +5,17 @@ import { Camera, ArrowLeft } from "lucide-react";
 import { toast } from "react-toastify";
 import { useRouter } from "next/navigation";
 import Loader from "@/components/Loader2";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { DatePicker } from "@/components/DatePicker";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Button } from "@/components/ui/stateful-button";
 
 export default function EditProfilePage() {
   const [formData, setFormData] = useState({
@@ -110,148 +121,139 @@ export default function EditProfilePage() {
     }
   };
 
-  if (loading) return (
-    <div className="h-screen w-[95%] mx-auto rounded-3xl bg-white my-4 items-center justify-center flex">
-    <Loader/>
-  </div>
-  )
+  if (loading)
+    return (
+      <div className="h-screen w-[95%] mx-auto rounded-3xl bg-white my-4 items-center justify-center flex">
+        <Loader />
+      </div>
+    );
 
   return (
-  <div className="min-h-screen bg-[url('/userpage.jpg')] bg-cover bg-center flex items-center justify-center p-6 w-[95%] mx-auto rounded-3xl my-4">
-  <div className="bg-white/60 backdrop-blur-xl shadow-2xl rounded-3xl p-8 w-full max-w-2xl border border-white/40">
-    
-    {/* Back Button */}
-    <button
-      onClick={() => router.back()}
-      className="flex items-center gap-2 text-gray-700 hover:text-black transition mb-6"
-    >
-      <ArrowLeft size={20} />
-      <span className="font-medium">Back</span>
-    </button>
-
-    <h1 className="text-2xl font-bold text-center mb-8 text-gray-900 tracking-wide">
-      Edit Profile
-    </h1>
-
-    {/* Profile Image */}
-    <div className="flex flex-col items-center relative">
-      <div className="relative group">
-        <Image
-          src={formData.image || "/userImage.png"}
-          alt="Profile"
-          width={110}
-          height={110}
-          className="rounded-full object-cover border-4 border-white shadow-md group-hover:scale-105 transition-transform duration-300"
-        />
-        <input
-          type="file"
-          id="profileUpload"
-          accept="image/*"
-          className="hidden"
-          onChange={handleImageUpload}
-        />
-        <label
-          htmlFor="profileUpload"
-          className="absolute bottom-2 right-2 bg-black text-white p-2 rounded-full cursor-pointer hover:bg-gray-800 h-8 w-8 flex items-center justify-center shadow-md"
+    <div className="min-h-screen bg-[url('/userpage.jpg')] bg-cover bg-center flex items-center justify-center p-6 w-[95%] mx-auto rounded-3xl my-4">
+      <div className="bg-white/60 backdrop-blur-xl shadow-2xl rounded-3xl p-8 w-full max-w-2xl border border-white/40">
+        {/* Back Button */}
+        <button
+          onClick={() => router.back()}
+          className="flex items-center gap-2 text-gray-700 hover:text-black transition mb-6"
         >
-          <Camera size={16} />
-        </label>
-      </div>
-      <h2 className="mt-3 font-semibold text-lg">{formData.fullName}</h2>
-      <p className="text-gray-500 text-sm">{formData.username}</p>
-    </div>
+          <ArrowLeft size={20} />
+          <span className="font-medium">Back</span>
+        </button>
 
-    {/* Form */}
-    <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-5">
-      <div>
-        <label className="block text-sm text-gray-700 font-medium mb-1">
-          Full Name
-        </label>
-        <input
-          type="text"
-          name="fullName"
-          value={formData.fullName}
-          onChange={handleChange}
-          className="w-full border rounded-lg px-3 py-2 bg-white/80 shadow-sm focus:outline-none focus:ring-2 focus:ring-black transition"
-        />
-      </div>
-      <div>
-        <label className="block text-sm text-gray-700 font-medium mb-1">
-          Birthday
-        </label>
-        <input
-          type="date"
-          name="birthday"
-          value={formData.birthday}
-          onChange={handleChange}
-          className="w-full border rounded-lg px-3 py-2 bg-white/80 shadow-sm focus:outline-none focus:ring-2 focus:ring-black transition"
-        />
-      </div>
-      <div>
-        <label className="block text-sm text-gray-700 font-medium mb-1">
-          Gender
-        </label>
-        <select
-          name="gender"
-          value={formData.gender}
-          onChange={handleChange}
-          className="w-full border rounded-lg px-3 py-2 bg-white/80 shadow-sm focus:outline-none focus:ring-2 focus:ring-black transition"
-        >
-          <option value="">Select</option>
-          <option value="Male">Male</option>
-          <option value="Female">Female</option>
-          <option value="Others">Others</option>
-        </select>
-      </div>
-      <div>
-        <label className="block text-sm text-gray-700 font-medium mb-1">
-          Phone
-        </label>
-        <input
-          type="text"
-          name="phone"
-          value={formData.phone}
-          onChange={handleChange}
-          className="w-full border rounded-lg px-3 py-2 bg-white/80 shadow-sm focus:outline-none focus:ring-2 focus:ring-black transition"
-        />
-      </div>
-      <div className="md:col-span-2">
-        <label className="block text-sm text-gray-700 font-medium mb-1">
-          Email
-        </label>
-        <input
-          type="email"
-          name="email"
-          value={formData.email}
-          onChange={handleChange}
-          className="w-full border rounded-lg px-3 py-2 bg-white/80 shadow-sm focus:outline-none focus:ring-2 focus:ring-black transition"
-        />
-      </div>
-      <div className="md:col-span-2">
-        <label className="block text-sm text-gray-700 font-medium mb-1">
-          Username
-        </label>
-        <input
-          type="text"
-          name="username"
-          value={formData.username}
-          onChange={handleChange}
-          className="w-full border rounded-lg px-3 py-2 bg-white/80 shadow-sm focus:outline-none focus:ring-2 focus:ring-black transition"
-        />
+        <h1 className="text-2xl font-bold text-center mb-8 text-gray-900 tracking-wide">
+          Edit Profile
+        </h1>
+
+        {/* Profile Image */}
+        <div className="flex flex-col items-center relative">
+          <div className="relative group">
+            <Image
+              src={formData.image || "/userImage.png"}
+              alt="Profile"
+              width={110}
+              height={110}
+              className="rounded-full object-cover border-4 border-white shadow-md group-hover:scale-105 transition-transform duration-300"
+            />
+            <input
+              type="file"
+              id="profileUpload"
+              accept="image/*"
+              className="hidden"
+              onChange={handleImageUpload}
+            />
+            <label
+              htmlFor="profileUpload"
+              className="absolute bottom-2 right-2 bg-black text-white p-2 rounded-full cursor-pointer hover:bg-gray-800 h-8 w-8 flex items-center justify-center shadow-md"
+            >
+              <Camera size={16} />
+            </label>
+          </div>
+          <h2 className="mt-3 font-semibold text-lg">{formData.fullName}</h2>
+          <p className="text-gray-500 text-sm">{formData.username}</p>
+        </div>
+
+        {/* Form */}
+        <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-5">
+          <div>
+            <Label className="block text-sm text-gray-700 font-medium mb-1">
+              Full Name
+            </Label>
+            <Input
+              type="text"
+              name="fullName"
+              value={formData.fullName}
+              onChange={handleChange}
+              className="w-full border rounded-md px-3 py-2 bg-white/80 shadow-sm focus:outline-none focus:ring-1 focus:ring-white transition"
+            />
+          </div>
+          <div>
+            <Label className="block text-sm text-gray-700 font-medium mb-1">
+              Birthday
+            </Label>
+            <DatePicker
+              value={formData.birthday}
+              onChange={(date: string) =>
+                setFormData({ ...formData, birthday: date })
+              }
+              className="bg-white/80 h-[40px] mt-[3px] w-full focus:ring-[2px] focus:ring-blue-500 shadow-sm"
+            />
+          </div>
+          <div>
+            <Label className="block text-sm text-gray-700 font-medium mb-1">
+              Gender
+            </Label>
+            <Select
+              value={formData.gender}
+              onValueChange={(value) =>
+                setFormData({ ...formData, gender: value })
+              }
+            >
+              <SelectTrigger className="w-full bg-white/80 shadow-sm transition border-0 border-white focus:ring-[1.5px] focus:ring-blue-500 h-[39px] mt-[6px]">
+                <SelectValue placeholder="Select gender" />
+              </SelectTrigger>
+              <SelectContent className="bg-white border border-white focus:ring-white">
+                <SelectItem value="Male">Male</SelectItem>
+                <SelectItem value="Female">Female</SelectItem>
+                <SelectItem value="Others">Others</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <Label className="block text-sm text-gray-700 font-medium mb-1">
+              Phone
+            </Label>
+            <Input
+              type="text"
+              name="phone"
+              value={formData.phone}
+              onChange={handleChange}
+              className="w-full border rounded-md px-3 py-2 bg-white/80 shadow-sm focus:outline-none transition"
+            />
+          </div>
+          <div className="md:col-span-2">
+            <Label className="block text-sm text-gray-700 font-medium mb-1">
+              Email
+            </Label>
+            <Input
+              type="email"
+              name="email"
+              value={formData.email}
+              onChange={handleChange}
+              className="w-full border rounded-md px-3 py-2 bg-white/80 shadow-sm focus:outline-none focus:ring-2 focus:ring-black transition"
+            />
+          </div>
+        </div>
+
+        {/* Save Button */}
+        <div className="mt-8 text-center">
+          <Button
+            onClick={handleSave}
+            className="bg-black text-white px-8 py-2 rounded-xl hover:bg-gray-800 transition-all duration-300 shadow-md hover:scale-105 cursor-pointer text-sm w-full"
+          >
+            Save Changes
+          </Button>
+        </div>
       </div>
     </div>
-
-    {/* Save Button */}
-    <div className="mt-8 text-center">
-      <button
-        onClick={handleSave}
-        className="bg-black text-white px-8 py-2 rounded-xl hover:bg-gray-800 transition-all duration-300 shadow-md hover:scale-105 cursor-pointer text-sm"
-      >
-        Save Changes
-      </button>
-    </div>
-  </div>
-</div>
-
   );
 }
