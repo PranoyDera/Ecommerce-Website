@@ -25,7 +25,6 @@ const CartContext = createContext<CartContextType | undefined>(undefined);
 export const CartProvider = ({ children }: { children: React.ReactNode }) => {
   const [cart, setCart] = useState<CartItem[]>([]);
 
-  // 🔹 Fetch cart from backend
   const fetchCart = React.useCallback(async (userId: string) => {
     try {
       if (!userId) return;
@@ -42,7 +41,7 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
     }
   }, []);
 
-  // 🔹 Add to cart
+ 
   const addToCart = async (userId: string, product: CartItem) => {
     try {
       const res = await fetch(`http://localhost:5000/api/cart/${userId}`, {
@@ -60,7 +59,7 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
-  // 🔹 Remove from cart
+
   const removeFromCart = async (userId: string, productId: string) => {
     try {
       const res = await fetch(`http://localhost:5000/api/cart/${userId}/${productId}`, {
@@ -76,7 +75,7 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
-  // 🔹 Clear cart
+
   const clearCart = async (userId: string) => {
     try {
       if (!userId) return;
@@ -85,13 +84,13 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
         method: "DELETE",
       });
 
-      setCart([]); // always array
+      setCart([]); 
     } catch (err) {
       console.error("Error clearing cart:", err);
     }
   };
 
-  // 🔹 Auto-fetch when user is logged in
+  
   useEffect(() => {
     const userId = localStorage.getItem("userId");
     if (userId) {

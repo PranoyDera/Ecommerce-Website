@@ -5,8 +5,8 @@ import React, { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { ShoppingCart } from "lucide-react";
 import useCartStore from "@/app/Stores/cartStore";
-import { toast } from "react-toastify";
-import Loader from "../../../components/Loader";
+import { toast } from "sonner";
+import Loader from "../../../components/Loader2";
 import { useCart } from "@/app/context/cartContext";
 
 const ProductPage = () => {
@@ -15,7 +15,7 @@ const ProductPage = () => {
   const [product, setProduct] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [quantity, setQuantity] = useState(1);
-  const {addToCart} = useCart();
+  const { addToCart } = useCart();
 
   // ✅ Fetch single product from DummyJSON
   useEffect(() => {
@@ -48,52 +48,52 @@ const ProductPage = () => {
   ).toFixed(2);
 
   // ✅ Handle Add to Cart
-const handleAddToCart = async () => {
-  try {
-    const userId = localStorage.getItem("userId");
-    if (!userId) {
-      toast.error("Please login first!");
-      return;
+  const handleAddToCart = async () => {
+    try {
+      const userId = localStorage.getItem("userId");
+      if (!userId) {
+        toast.error("Please login first!");
+        return;
+      }
+
+      await addToCart(userId, {
+        productId: product.id,
+        title: product.title,
+        price: product.price,
+        quantity,
+        image: product.images[0],
+        discountPercentage: product.discountPercentage,
+      });
+
+      toast.success(`${quantity} item(s) added to cart`);
+    } catch (error) {
+      console.error("Add to cart failed:", error);
+      toast.error("Failed to add to cart");
     }
-
-    await addToCart(userId, {
-      productId: product.id,
-      title: product.title,
-      price: product.price,
-      quantity,
-      image: product.images[0],
-      discountPercentage: product.discountPercentage,
-    });
-
-    toast.success(`${quantity} item(s) added to cart`);
-  } catch (error) {
-    console.error("Add to cart failed:", error);
-    toast.error("Failed to add to cart");
-  }
-};
+  };
 
   // ✅ Handle Buy Now
-const handleBuyNow = () => {
-  try {
-    const orderData = {
-      productId: product.id,
-      title: product.title,
-      price: product.price,
-      discountPrice,
-      quantity,
-      image: product.images[0],
-    };
+  const handleBuyNow = () => {
+    try {
+      const orderData = {
+        productId: product.id,
+        title: product.title,
+        price: product.price,
+        discountPrice,
+        quantity,
+        image: product.images[0],
+      };
 
-    // Save order in localStorage
-    localStorage.setItem("order", JSON.stringify(orderData));
-    localStorage.setItem("checkoutMode","buyNow")
+      // Save order in localStorage
+      localStorage.setItem("order", JSON.stringify(orderData));
+      localStorage.setItem("checkoutMode", "buyNow");
 
-    // Redirect to confirmation page
-    router.push("/order/confirmation");
-  } catch (err) {
-    console.error("Buy Now failed:", err);
-  }
-};
+      // Redirect to confirmation page
+      router.push("/order/confirmation");
+    } catch (err) {
+      console.error("Buy Now failed:", err);
+    }
+  };
 
   return (
     <div className="flex flex-col gap-8 lg:flex-row md:gap-12 my-12 w-[85%] mx-auto bg-gray-200 p-4 rounded-3xl">
@@ -128,8 +128,10 @@ const handleBuyNow = () => {
 
         {/* Price & Discount */}
         <div className="flex items-center gap-4">
-          <h2 className="text-2xl font-semibold text-black">₹{discountPrice}</h2>
-          <p className="line-through text-gray-500">₹{product.price}</p>
+          <h2 className="text-2xl font-semibold text-black">
+            ${discountPrice}
+          </h2>
+          <p className="line-through text-gray-500">${product.price}</p>
           <span className="text-green-600 font-semibold">
             {product.discountPercentage}% off
           </span>
@@ -149,9 +151,11 @@ const handleBuyNow = () => {
         <p className="text-sm text-gray-600">
           Category: <span className="font-medium">{product.category}</span>
         </p>
-        <p className="text-sm text-gray-600">
-          Brand: <span className="font-medium">{product.brand}</span>
-        </p>
+        {product.brand && (
+          <p className="text-sm text-gray-600">
+            Brand: <span className="font-medium">{product.brand}</span>
+          </p>
+        )}
 
         {/* Description */}
         <p className="text-gray-700 leading-relaxed">{product.description}</p>
@@ -160,7 +164,7 @@ const handleBuyNow = () => {
         <div className="flex gap-4 mt-6">
           <button
             onClick={handleAddToCart}
-            className="flex items-center gap-2 bg-gray-800 text-white border borde-white shadow-md rounded-md px-6 py-3 text-sm cursor-pointer hover:text-black hover:bg-white transition-all duration-300"
+            className="flex items-center gap-2 bg-gray-800 text-white shadow-md rounded-md px-6 py-3 text-sm cursor-pointer hover:text-white hover:bg-gray-900 transition-all duration-300 hover:scale-110"
           >
             <ShoppingCart className="size-4" />
             Add To Cart
@@ -168,7 +172,7 @@ const handleBuyNow = () => {
 
           <button
             onClick={handleBuyNow}
-            className="flex items-center gap-2 bg-orange-500 text-white shadow-md rounded-md px-6 py-3 text-sm cursor-pointer hover:bg-orange-600 transition-all duration-300"
+            className="flex items-center gap-2 bg-orange-500 text-white shadow-md rounded-md px-6 py-3 text-sm cursor-pointer hover:bg-orange-600 transition-all duration-300 hover:scale-110"
           >
             Buy Now
           </button>

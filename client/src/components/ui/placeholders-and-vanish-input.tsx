@@ -211,7 +211,7 @@ export function PlaceholdersAndVanishInput({
         type="submit"
         className="absolute right-2 top-1/2 z-50 -translate-y-1/2 h-8 w-8 rounded-full disabled:bg-gray-100 bg-black dark:bg-zinc-900 dark:disabled:bg-zinc-800 transition duration-200 flex items-center justify-center"
       >
-        <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+       
         <svg
           xmlns="http://www.w3.org/2000/svg"
           width="20"
@@ -224,6 +224,7 @@ export function PlaceholdersAndVanishInput({
           strokeLinejoin="round"
           className="text-gray-500 h-4 w-4"
         >
+           <path stroke="none" d="M0 0h24v24H0z" fill="none" />
           <circle cx="11" cy="11" r="8" />
           <line x1="21" y1="21" x2="16.65" y2="16.65" />
         </svg>

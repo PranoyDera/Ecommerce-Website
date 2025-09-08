@@ -3,13 +3,17 @@
 import AddressForm from "../../../components/AddressForm";
 import { Pencil, Plus, Trash2, ArrowLeft } from "lucide-react";
 import React, { useEffect, useState } from "react";
-import { toast } from "react-toastify";
+import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import ConfirmModal from "@/components/ConfirmModal";
 
 function EditAddress() {
   const [addresses, setAddresses] = useState<any[]>([]);
   const [showAddressForm, setShowAddressForm] = useState(false);
   const [editingAddress, setEditingAddress] = useState<any | null>(null);
+  const [open, setOpen] = useState(false);
+  const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null);
+
   const router = useRouter();
 
   // Fetch user addresses
@@ -49,7 +53,6 @@ function EditAddress() {
 
       if (res.ok) {
         setAddresses(data.addresses || []);
-        fetchAddresses();
         toast.success("Address deleted!");
       } else {
         console.error("Failed to delete address:", data.message);
@@ -126,7 +129,10 @@ function EditAddress() {
                     Edit
                   </button>
                   <button
-                    onClick={() => handleDelete(addr._id)}
+                    onClick={() => {
+                      setSelectedAddressId(addr._id);
+                      setOpen(true);
+                    }}
                     className="px-4 py-2 bg-red-600 text-white text-sm font-medium rounded-lg flex items-center gap-2 hover:bg-red-700 transition"
                   >
                     <Trash2 size={15} />
@@ -154,6 +160,21 @@ function EditAddress() {
           </div>
         )}
       </div>
+
+      {/* Confirm Modal */}
+      <ConfirmModal
+        isOpen={open}
+        onClose={() => setOpen(false)}
+        onConfirm={() => {
+          if (selectedAddressId) {
+            handleDelete(selectedAddressId);
+          }
+          setOpen(false);
+          setSelectedAddressId(null);
+        }}
+        title="Are you sure?"
+        message="You want to delete this address?"
+      />
     </div>
   );
 }

@@ -74,8 +74,8 @@ const handleConfirmOrder = (address: any, paymentMethod: string) => {
     price: product.price,
     quantity,
     image: product.images[0],
-    address,          // ✅ use the prop, not selectedAddress
-    paymentMethod,    // ✅ from props
+    address,          
+    paymentMethod,  
   };
 
   localStorage.setItem("order", JSON.stringify(orderData));
@@ -90,16 +90,6 @@ const handleConfirmOrder = (address: any, paymentMethod: string) => {
   } else {
     toast.info("Redirecting to payment gateway...");
   }
-
-  // Save in orders history
-  let orders = JSON.parse(localStorage.getItem("orders") || "[]");
-  orders.push({
-    ...orderData,
-    date: new Date().toISOString(),
-  });
-  localStorage.setItem("orders", JSON.stringify(orders));
-
-  setShowModal(false);
 };
 
 

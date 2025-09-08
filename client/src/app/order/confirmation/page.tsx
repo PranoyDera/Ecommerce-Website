@@ -8,6 +8,8 @@ import { useRouter } from "next/navigation";
 import { useOrders } from "@/app/context/orderContext";
 import { useCart } from "@/app/context/cartContext";
 import Loader from "@/components/Loader2";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/stateful-button";
 
 interface CartItem {
   productId: string;
@@ -39,6 +41,9 @@ export default function OrderConfirmation() {
   const { fetchOrders } = useOrders();
   const { cart, setCart, fetchCart } = useCart();
 
+  // ✅ Local state for buyNow items
+  const [buyNowItems, setBuyNowItems] = useState<CartItem[] | null>(null);
+
   // ✅ Load user info, address, payment
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -46,7 +51,6 @@ export default function OrderConfirmation() {
     setUsername(localStorage.getItem("username"));
     setEmail(localStorage.getItem("email"));
 
-    // Address
     const storedAddr = localStorage.getItem("selectedAddress");
     if (storedAddr) {
       try {
@@ -56,7 +60,6 @@ export default function OrderConfirmation() {
       }
     }
 
-    // Payment
     const rawPayment = localStorage.getItem("selectedPaymentMethod");
     if (rawPayment) {
       try {
@@ -76,7 +79,6 @@ export default function OrderConfirmation() {
   const loadCart = useCallback(async () => {
     const checkoutMode = localStorage.getItem("checkoutMode");
 
-    // 🛒 Buy Now flow
     if (checkoutMode === "buyNow") {
       const buyNowOrder = localStorage.getItem("order");
       if (buyNowOrder) {
@@ -90,7 +92,7 @@ export default function OrderConfirmation() {
             image: parsed.image,
           };
 
-          setCart([item]);
+          setBuyNowItems([item]);
           setOrderTotal((item.price * item.quantity).toString());
           setLoading(false);
           return;
@@ -100,14 +102,14 @@ export default function OrderConfirmation() {
       }
     }
 
-    // 🛒 Cart flow
+    // 🛒 Normal Cart flow
     if (!userId) {
       setLoading(false);
       return;
     }
 
     try {
-      await fetchCart(userId); // ✅ fetchCart updates context internally
+      await fetchCart(userId);
     } catch (err) {
       console.error("Error fetching cart:", err);
       setCart([]);
@@ -120,32 +122,52 @@ export default function OrderConfirmation() {
     loadCart();
   }, [loadCart]);
 
-  // ✅ Keep orderTotal updated when cart changes
+  // ✅ Keep totals updated
   useEffect(() => {
-    if (cart && Array.isArray(cart)) {
+    if (buyNowItems) {
+      const total = buyNowItems.reduce(
+        (sum, item) => sum + item.price * item.quantity,
+        0
+      );
+      setOrderTotal(total.toString());
+    } else if (cart && Array.isArray(cart)) {
       const total = cart.reduce(
         (sum, item) => sum + item.price * item.quantity,
         0
       );
       setOrderTotal(total.toString());
     }
-  }, [cart]);
+  }, [cart, buyNowItems]);
 
   // ✅ Place order
   const handleOrderPlace = async () => {
-    if (!userId || cart.length === 0) {
-      alert("No items in cart to place an order.");
-      return;
-    }
+    const checkoutMode = localStorage.getItem("checkoutMode");
 
     try {
-      const orderPayload = {
-        userId,
-        items: cart,
-        totalAmount: orderTotal,
-        paymentMethod,
-        address: selectedAddress,
-      };
+      let orderPayload;
+
+      if (checkoutMode === "buyNow" && buyNowItems) {
+        orderPayload = {
+          userId,
+          items: buyNowItems,
+          totalAmount: orderTotal,
+          paymentMethod,
+          address: selectedAddress,
+        };
+      } else {
+        if (!userId || cart.length === 0) {
+          alert("No items in cart to place an order.");
+          return;
+        }
+
+        orderPayload = {
+          userId,
+          items: cart,
+          totalAmount: orderTotal,
+          paymentMethod,
+          address: selectedAddress,
+        };
+      }
 
       const orderRes = await fetch("http://localhost:5000/api/orders", {
         method: "POST",
@@ -154,8 +176,6 @@ export default function OrderConfirmation() {
       });
 
       if (!orderRes.ok) throw new Error("Failed to place order");
-
-      const checkoutMode = localStorage.getItem("checkoutMode");
 
       if (checkoutMode === "buyNow") {
         localStorage.removeItem("order");
@@ -169,22 +189,21 @@ export default function OrderConfirmation() {
 
       localStorage.removeItem("checkoutMode");
 
-
       setOrderTotal("0");
       setIsModalOpen(true);
       fetchOrders();
     } catch (err) {
       console.error("Error placing order:", err);
-      alert("❌ Failed to place order, please try again.");
+      toast.error("❌ Failed to place order, please try again.");
     }
   };
 
-  if (loading) return (
-    <div className="h-screen w-[95%] mx-auto rounded-3xl bg-white my-4 items-center justify-center flex">
-    <Loader/>
-  </div>
-  ) 
-
+  if (loading)
+    return (
+      <div className="h-screen w-[95%] mx-auto rounded-3xl bg-white my-4 items-center justify-center flex">
+        <Loader />
+      </div>
+    );
 
   return (
     <div className="min-h-screen bg-gray-100 py-12 px-20 w-[95%] mx-auto my-4 rounded-2xl">
@@ -206,89 +225,73 @@ export default function OrderConfirmation() {
               ${Number(orderTotal).toFixed(2)}
             </span>
           </p>
-          <button
+          <Button
             onClick={handleOrderPlace}
-            className="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-lg font-semibold shadow transition-all cursor-pointer"
+            className="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-lg font-semibold shadow transition-all cursor-pointer hover:scale-105"
           >
             Place Order
-          </button>
+          </Button>
         </div>
       </div>
+
+      {/* User, Address, Payment Info */}
       <div className="w-full mx-auto bg-white p-4 mb-4">
-        {" "}
         <div className="grid md:grid-cols-2 gap-6 pb-6 mb-6">
-          {" "}
-          {/* User Info */}{" "}
           <div className="rounded-xl p-4">
-            {" "}
             <div className="flex justify-between items-center border-b-2 border-black border-dashed">
-              {" "}
-              <h2 className="text-lg font-semibold">Your Information</h2>{" "}
-            </div>{" "}
-            <p className="mt-2 text-gray-600">{username}</p>{" "}
-            <p className="text-gray-600">{email}</p>{" "}
-          </div>{" "}
-          {/* Shipping */}{" "}
+              <h2 className="text-lg font-semibold">Your Information</h2>
+            </div>
+            <p className="mt-2 text-gray-600">{username}</p>
+            <p className="text-gray-600">{email}</p>
+          </div>
+
           <div className="rounded-xl p-4">
-            {" "}
             <div className="flex justify-between items-center border-b-2 border-black border-dashed">
-              {" "}
-              <h2 className="text-lg font-semibold">Shipping Address</h2>{" "}
+              <h2 className="text-lg font-semibold">Shipping Address</h2>
               <Link href="/cart?step=2">
-                {" "}
                 <button className="text-blue-500 hover:underline text-sm cursor-pointer">
-                  {" "}
-                  Edit{" "}
-                </button>{" "}
-              </Link>{" "}
-            </div>{" "}
+                  Edit
+                </button>
+              </Link>
+            </div>
             {selectedAddress ? (
               <>
-                {" "}
-                <p className="mt-2 text-gray-600">
-                  {selectedAddress.address}
-                </p>{" "}
+                <p className="mt-2 text-gray-600">{selectedAddress.address}</p>
                 <p className="text-gray-600">
-                  {" "}
-                  {selectedAddress.city}, {selectedAddress.country}{" "}
-                </p>{" "}
+                  {selectedAddress.city}, {selectedAddress.country}
+                </p>
               </>
             ) : (
               <p className="mt-2 text-gray-500">No address selected</p>
-            )}{" "}
-          </div>{" "}
-          {/* Payment */}{" "}
+            )}
+          </div>
+
           <div className="rounded-xl p-4">
-            {" "}
             <div className="flex justify-between items-center border-b-2 border-black border-dashed">
-              {" "}
-              <h2 className="text-lg font-semibold">Payment</h2>{" "}
-            </div>{" "}
+              <h2 className="text-lg font-semibold">Payment</h2>
+            </div>
             <p className="mt-2 text-gray-600">
-              {" "}
-              Selected Payment Method: {paymentMethod ?? "Not Selected"}{" "}
-            </p>{" "}
-          </div>{" "}
-          {/* Billing */}{" "}
+              Selected Payment Method: {paymentMethod ?? "Not Selected"}
+            </p>
+          </div>
+
           <div className="rounded-xl p-4">
-            {" "}
             <div className="flex justify-between items-center border-b-2 border-black border-dashed">
-              {" "}
-              <h2 className="text-lg font-semibold">Billing Address</h2>{" "}
-            </div>{" "}
-            <p className="mt-2 text-gray-600">{username}</p>{" "}
+              <h2 className="text-lg font-semibold">Billing Address</h2>
+            </div>
+            <p className="mt-2 text-gray-600">{username}</p>
             <p className="text-gray-600">
-              {" "}
               {selectedAddress?.address} <br /> {selectedAddress?.city},{" "}
-              {selectedAddress?.country}{" "}
-            </p>{" "}
-            <p className="text-gray-600">(315) 396-7461</p>{" "}
-          </div>{" "}
-        </div>{" "}
+              {selectedAddress?.country}
+            </p>
+            <p className="text-gray-600">(315) 396-7461</p>
+          </div>
+        </div>
       </div>
-      {/* Cart Table */}
+
+      {/* Items Table */}
       <div>
-        {cart.length === 0 ? (
+        {(buyNowItems ?? cart).length === 0 ? (
           <p className="text-gray-500">Your cart is empty.</p>
         ) : (
           <table className="w-full text-left border-collapse">
@@ -301,7 +304,7 @@ export default function OrderConfirmation() {
               </tr>
             </thead>
             <tbody>
-              {cart.map((item) => (
+              {(buyNowItems ?? cart).map((item) => (
                 <tr key={item.productId} className="border-b text-gray-800">
                   <td className="py-4 flex items-center gap-4">
                     <Image
