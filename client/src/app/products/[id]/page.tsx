@@ -8,6 +8,8 @@ import useCartStore from "@/app/Stores/cartStore";
 import { toast } from "sonner";
 import Loader from "../../../components/Loader2";
 import { useCart } from "@/app/context/cartContext";
+import BuyNowModal from "@/components/BuynowModal";
+import { openRazorpayCheckout } from "@/app/utils/paymentUtils";
 
 const ProductPage = () => {
   const params = useParams();
@@ -16,6 +18,7 @@ const ProductPage = () => {
   const [loading, setLoading] = useState(true);
   const [quantity, setQuantity] = useState(1);
   const { addToCart } = useCart();
+  const [showModal, setShowModal] = useState(false);
 
   // ✅ Fetch single product from DummyJSON
   useEffect(() => {
@@ -74,24 +77,55 @@ const ProductPage = () => {
 
   // ✅ Handle Buy Now
   const handleBuyNow = () => {
-    try {
-      const orderData = {
-        productId: product.id,
-        title: product.title,
-        price: product.price,
-        discountPrice,
-        quantity,
-        image: product.images[0],
-      };
+    setShowModal(true);
+  };
 
-      // Save order in localStorage
-      localStorage.setItem("order", JSON.stringify(orderData));
-      localStorage.setItem("checkoutMode", "buyNow");
+  const handleConfirmOrder = (address: any, paymentMethod: string) => {
+    if (!address) {
+      toast.error("Please select an address");
+      return;
+    }
+    if (!paymentMethod) {
+      toast.error("Please select a payment method");
+      return;
+    }
 
-      // Redirect to confirmation page
+    const orderData = {
+      productId: product.id,
+      title: product.title,
+      price: product.price,
+      quantity,
+      image: product.images[0],
+      address,
+      paymentMethod,
+    };
+
+    localStorage.setItem("order", JSON.stringify(orderData));
+    localStorage.setItem("checkoutMode", "buyNow");
+    localStorage.setItem("subtotal", JSON.stringify(product.price * quantity));
+    localStorage.setItem("total", JSON.stringify(product.price * quantity));
+    localStorage.setItem("selectedAddress", JSON.stringify(address));
+    localStorage.setItem(
+      "selectedPaymentMethod",
+      JSON.stringify(paymentMethod)
+    );
+
+    if (paymentMethod === "Cash on Delivery") {
       router.push("/order/confirmation");
-    } catch (err) {
-      console.error("Buy Now failed:", err);
+    } else {
+      openRazorpayCheckout(
+        product.price * quantity,
+        () => {
+          toast("Payment Successful!");
+          localStorage.setItem("selectedPaymentMethod", "Online");
+          localStorage.setItem("paymentStatus", "Paid");
+          router.push("/order/confirmation");
+        },
+        () => {
+          toast("Payment failed or verification failed!");
+        }
+      );
+      toast.info("Redirecting to payment gateway...");
     }
   };
 
@@ -129,9 +163,11 @@ const ProductPage = () => {
         {/* Price & Discount */}
         <div className="flex items-center gap-4">
           <h2 className="text-2xl font-semibold text-black">
-            ${discountPrice}
+            ${(Number(discountPrice) * quantity).toFixed(2)}
           </h2>
-          <p className="line-through text-gray-500">${product.price}</p>
+          <p className="line-through text-gray-500">
+            ${(product.price * quantity).toFixed(2)}
+          </p>
           <span className="text-green-600 font-semibold">
             {product.discountPercentage}% off
           </span>
@@ -157,6 +193,27 @@ const ProductPage = () => {
           </p>
         )}
 
+        <div className="flex items-center gap-4 mt-4">
+          <button
+            onClick={() => setQuantity((prev) => Math.max(1, prev - 1))}
+            className="px-3 py-1 bg-gray-300 text-black rounded disabled:opacity-50"
+            disabled={quantity <= 1}
+          >
+            -
+          </button>
+          <span className="font-medium">{quantity}</span>
+          <button
+            onClick={() =>
+              setQuantity((prev) => Math.min(product.stock, prev + 1))
+            }
+            className="px-3 py-1 bg-gray-300 text-black rounded disabled:opacity-50"
+            disabled={quantity >= product.stock}
+          >
+            +
+          </button>
+          <p className="text-sm text-gray-600">(Available: {product.stock})</p>
+        </div>
+
         {/* Description */}
         <p className="text-gray-700 leading-relaxed">{product.description}</p>
 
@@ -178,6 +235,13 @@ const ProductPage = () => {
           </button>
         </div>
       </div>
+
+      {showModal && (
+        <BuyNowModal
+          onClose={() => setShowModal(false)}
+          onConfirm={handleConfirmOrder}
+        />
+      )}
     </div>
   );
 };

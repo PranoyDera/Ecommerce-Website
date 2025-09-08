@@ -10,6 +10,7 @@ import { useRouter } from "next/navigation";
 import BuyNowModal from "./BuynowModal";
 import { useCart } from "@/app/context/cartContext";
 import {toast} from "sonner";
+import { openRazorpayCheckout } from "@/app/utils/paymentUtils";
 
 function ProductCard({ product }: { product: ProductType }) {
   const [quantity, setQuantity] = useState(1);
@@ -57,8 +58,6 @@ function ProductCard({ product }: { product: ProductType }) {
   };
 
 const handleConfirmOrder = (address: any, paymentMethod: string) => {
-  console.log("LOG:", address, paymentMethod);
-
   if (!address) {
     toast.error("Please select an address");
     return;
@@ -88,6 +87,18 @@ const handleConfirmOrder = (address: any, paymentMethod: string) => {
   if (paymentMethod === "Cash on Delivery") {
     router.push("/order/confirmation");
   } else {
+    openRazorpayCheckout(
+                    product.price,
+                    () => {
+                      toast("Payment Successful!");
+                      localStorage.setItem("selectedPaymentMethod","Online")
+                      localStorage.setItem("paymentStatus","Paid");
+                      router.push("/order/confirmation");
+                    },
+                    () => {
+                      toast("Payment failed or verification failed!");
+                    }
+                  );
     toast.info("Redirecting to payment gateway...");
   }
 };

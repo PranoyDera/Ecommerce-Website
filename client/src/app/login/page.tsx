@@ -1,6 +1,6 @@
 "use client";
 import { useRouter } from "next/navigation";
-import { toast } from "react-toastify";
+import { toast } from "sonner";
 import AuthForm from "../../components/AuthForm";
 import { useState } from "react";
 
@@ -49,10 +49,10 @@ export default function LoginPage() {
 
       await fetchAddresses();
 
-      toast.success(data.message);
+      toast(data.message);
       router.replace("/");
     } else {
-      toast.error(data.message);
+      toast(data.message);
     }
   };
 

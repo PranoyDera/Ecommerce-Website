@@ -6,13 +6,14 @@ const router = express.Router();
 // ✅ Place new order
 router.post("/", async (req, res) => {
   try {
-    const { userId, items, totalAmount, paymentMethod } = req.body;
+    const { userId, items, totalAmount, paymentMethod,paymentStatus } = req.body;
 
     const newOrder = new Order({
       userId,
       items,
       totalAmount,
       paymentMethod,
+      paymentStatus,
     });
 
     await newOrder.save();

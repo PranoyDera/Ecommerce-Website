@@ -41,6 +41,8 @@ export default function OrderConfirmation() {
   const { fetchOrders } = useOrders();
   const { cart, setCart, fetchCart } = useCart();
 
+  const paymentStatus = localStorage.getItem("paymentStatus");
+
   // ✅ Local state for buyNow items
   const [buyNowItems, setBuyNowItems] = useState<CartItem[] | null>(null);
 
@@ -152,11 +154,12 @@ export default function OrderConfirmation() {
           items: buyNowItems,
           totalAmount: orderTotal,
           paymentMethod,
+          paymentStatus,
           address: selectedAddress,
         };
       } else {
         if (!userId || cart.length === 0) {
-          alert("No items in cart to place an order.");
+          toast("No items in cart to place an order.");
           return;
         }
 
@@ -165,6 +168,7 @@ export default function OrderConfirmation() {
           items: cart,
           totalAmount: orderTotal,
           paymentMethod,
+          paymentStatus,
           address: selectedAddress,
         };
       }
@@ -272,6 +276,9 @@ export default function OrderConfirmation() {
             </div>
             <p className="mt-2 text-gray-600">
               Selected Payment Method: {paymentMethod ?? "Not Selected"}
+            </p>
+             <p className="mt-2 text-gray-600">
+              Payment Status: {paymentStatus ?? "Pending"}
             </p>
           </div>
 
