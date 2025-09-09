@@ -8,26 +8,7 @@ import { useRouter } from "next/navigation";
 import { useOrders } from "@/app/context/orderContext";
 import Loader from "@/components/Loader2";
 
-interface Item {
-  productId: string;
-  title: string;
-  quantity: number;
-  price: number;
-  color?: string;
-  size?: string;
-  image?: string;
-}
 
-interface Order {
-  _id: string;
-  userId: string;
-  items: Item[];
-  paymentStatus: string;
-  paymentMethod: string;
-  totalAmount: number;
-  createdAt: string;
-  updatedAt: string;
-}
 
 export default function OrderList() {
   const [loading, setLoading] = useState(true);
@@ -124,7 +105,7 @@ export default function OrderList() {
                 </div>
                 <span
                   className={`px-4 py-1.5 rounded-full text-xs font-semibold tracking-wide ${
-                    order.paymentStatus === "pending"
+                    order.paymentStatus === "Pending"
                       ? "bg-yellow-100 text-yellow-700 border border-yellow-300"
                       : order.paymentStatus === "Paid"
                       ? "bg-green-100 text-green-700 border border-green-300"

@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { X } from "lucide-react";
+import { toast } from "sonner";
 
 type Address = {
   _id: string;
@@ -33,8 +34,8 @@ export default function BuyNowModal({
   }, []);
 
   const handleConfirm = () => {
-    if (!selectedAddress) return alert("Please select an address!");
-    if (!paymentMethod) return alert("Please select a payment method!");
+    if (!selectedAddress) return toast("Please select an address!");
+    if (!paymentMethod) return toast("Please select a payment method!");
     onConfirm(selectedAddress, paymentMethod);
   };
 
@@ -86,7 +87,7 @@ export default function BuyNowModal({
         {/* Payment Methods */}
         <h2 className="text-lg font-semibold mb-2">Select Payment Method</h2>
         <div className="flex gap-3 mb-6">
-          {["Cash on Delivery", "Online", "Card"].map((method) => (
+          {["Cash on Delivery", "Online",].map((method) => (
             <button
               key={method}
               onClick={() => setPaymentMethod(method)}

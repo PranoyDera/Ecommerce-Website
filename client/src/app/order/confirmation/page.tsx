@@ -10,6 +10,7 @@ import { useCart } from "@/app/context/cartContext";
 import Loader from "@/components/Loader2";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/stateful-button";
+import { openRazorpayCheckout } from "@/app/utils/paymentUtils";
 
 interface CartItem {
   productId: string;
@@ -70,7 +71,7 @@ export default function OrderConfirmation() {
         if (val === "cod" || val === "Cash on Delivery")
           setPaymentMethod("Cash on Delivery");
         else if (val === "card") setPaymentMethod("Credit/Debit Card");
-        else if (val === "online") setPaymentMethod("Online");
+        else if (val === "Online") setPaymentMethod("Online");
       } catch {
         setPaymentMethod(rawPayment);
       }
@@ -142,65 +143,110 @@ export default function OrderConfirmation() {
   }, [cart, buyNowItems]);
 
   // ✅ Place order
-  const handleOrderPlace = async () => {
-    const checkoutMode = localStorage.getItem("checkoutMode");
+// ✅ Place order
+const handleOrderPlace = async () => {
+  const checkoutMode = localStorage.getItem("checkoutMode");
 
-    try {
-      let orderPayload;
+  try {
+    let orderPayload;
 
-      if (checkoutMode === "buyNow" && buyNowItems) {
-        orderPayload = {
-          userId,
-          items: buyNowItems,
-          totalAmount: orderTotal,
-          paymentMethod,
-          paymentStatus,
-          address: selectedAddress,
-        };
-      } else {
-        if (!userId || cart.length === 0) {
-          toast("No items in cart to place an order.");
-          return;
-        }
-
-        orderPayload = {
-          userId,
-          items: cart,
-          totalAmount: orderTotal,
-          paymentMethod,
-          paymentStatus,
-          address: selectedAddress,
-        };
+    if (checkoutMode === "buyNow" && buyNowItems) {
+      orderPayload = {
+        userId,
+        items: buyNowItems,
+        totalAmount: orderTotal,
+        paymentMethod,
+        paymentStatus,
+        address: selectedAddress,
+      };
+    } else {
+      if (!userId || cart.length === 0) {
+        toast("No items in cart to place an order.");
+        return;
       }
 
-      const orderRes = await fetch("http://localhost:5000/api/orders", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(orderPayload),
-      });
-
-      if (!orderRes.ok) throw new Error("Failed to place order");
-
-      if (checkoutMode === "buyNow") {
-        localStorage.removeItem("order");
-      } else {
-        await fetch(`http://localhost:5000/api/cart/${userId}`, {
-          method: "DELETE",
-        });
-        setCart([]);
-        await fetchCart(userId);
-      }
-
-      localStorage.removeItem("checkoutMode");
-
-      setOrderTotal("0");
-      setIsModalOpen(true);
-      fetchOrders();
-    } catch (err) {
-      console.error("Error placing order:", err);
-      toast.error("❌ Failed to place order, please try again.");
+      orderPayload = {
+        userId,
+        items: cart,
+        totalAmount: orderTotal,
+        paymentMethod,
+        paymentStatus,
+        address: selectedAddress,
+      };
     }
-  };
+
+    // 🔥 ONLINE PAYMENT FLOW
+    if (paymentMethod === "Online") {
+      const total = Number(localStorage.getItem("total"));
+
+      openRazorpayCheckout(
+        total,
+        async () => {
+          toast.success("Order Placed!");
+
+          // Save order only after payment success
+          const orderRes = await fetch("http://localhost:5000/api/orders", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              ...orderPayload,
+              paymentStatus: "Paid", // mark as paid
+            }),
+          });
+
+          if (!orderRes.ok) throw new Error("Failed to save order");
+
+          if (checkoutMode !== "buyNow") {
+            await fetch(`http://localhost:5000/api/cart/${userId}`, {
+              method: "DELETE",
+            });
+            setCart([]);
+            await fetchCart(userId);
+          }
+
+          localStorage.removeItem("checkoutMode");
+          setOrderTotal("0");
+          setIsModalOpen(true);
+          fetchOrders();
+          router.push("/");
+        },
+        () => {
+          toast.error("❌ Payment failed or verification failed!");
+        }
+      );
+
+      return; // stop here, don’t run COD flow
+    }
+
+    // 🔥 COD OR OTHER METHOD
+    const orderRes = await fetch("http://localhost:5000/api/orders", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(orderPayload),
+    });
+
+    if (!orderRes.ok) throw new Error("Failed to place order");
+
+    if (checkoutMode === "buyNow") {
+      localStorage.removeItem("order");
+    } else {
+      await fetch(`http://localhost:5000/api/cart/${userId}`, {
+        method: "DELETE",
+      });
+      setCart([]);
+      await fetchCart(userId);
+    }
+
+    localStorage.removeItem("checkoutMode");
+    setOrderTotal("0");
+    setIsModalOpen(true);
+    fetchOrders();
+  } catch (err) {
+    console.error("Error placing order:", err);
+    toast.error("❌ Failed to place order, please try again.");
+  }
+};
+
 
   if (loading)
     return (
@@ -229,12 +275,21 @@ export default function OrderConfirmation() {
               ${Number(orderTotal).toFixed(2)}
             </span>
           </p>
-          <Button
-            onClick={handleOrderPlace}
-            className="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-lg font-semibold shadow transition-all cursor-pointer hover:scale-105"
-          >
-            Place Order
-          </Button>
+          {paymentMethod === "Online" ? (
+            <Button
+              onClick={handleOrderPlace}
+              className="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-lg font-semibold shadow transition-all cursor-pointer hover:scale-105"
+            >
+              Pay and Place Order
+            </Button>
+          ) : (
+            <Button
+              onClick={handleOrderPlace}
+              className="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-lg font-semibold shadow transition-all cursor-pointer hover:scale-105"
+            >
+              Place Order
+            </Button>
+          )}
         </div>
       </div>
 
@@ -277,7 +332,7 @@ export default function OrderConfirmation() {
             <p className="mt-2 text-gray-600">
               Selected Payment Method: {paymentMethod ?? "Not Selected"}
             </p>
-             <p className="mt-2 text-gray-600">
+            <p className="mt-2 text-gray-600">
               Payment Status: {paymentStatus ?? "Pending"}
             </p>
           </div>

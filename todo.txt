@@ -1,0 +1,7 @@
+Features to be left to add:
+        1.Search function
+        2.Contact page API
+        3.Cash on delivery bug on product page(in cod the payment status should be pending but it saving as paid)
+        4.All products UI should be improved
+        5.Have to do responsive
+        6.Terms page UI should be improved.

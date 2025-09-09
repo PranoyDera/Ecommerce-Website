@@ -111,21 +111,12 @@ const ProductPage = () => {
     );
 
     if (paymentMethod === "Cash on Delivery") {
+      localStorage.setItem("paymentStatus", "Pending");
       router.push("/order/confirmation");
     } else {
-      openRazorpayCheckout(
-        product.price * quantity,
-        () => {
-          toast("Payment Successful!");
-          localStorage.setItem("selectedPaymentMethod", "Online");
-          localStorage.setItem("paymentStatus", "Paid");
-          router.push("/order/confirmation");
-        },
-        () => {
-          toast("Payment failed or verification failed!");
-        }
-      );
-      toast.info("Redirecting to payment gateway...");
+       localStorage.setItem("selectedPaymentMethod", "Online");
+       localStorage.setItem("paymentStatus", "Pending");
+       router.push("/order/confirmation");
     }
   };
 

@@ -59,11 +59,11 @@ function ProductCard({ product }: { product: ProductType }) {
 
 const handleConfirmOrder = (address: any, paymentMethod: string) => {
   if (!address) {
-    toast.error("Please select an address");
+    toast("Please select an address");
     return;
   }
   if (!paymentMethod) {
-    toast.error("Please select a payment method");
+    toast("Please select a payment method");
     return;
   }
 
@@ -83,24 +83,8 @@ const handleConfirmOrder = (address: any, paymentMethod: string) => {
   localStorage.setItem("total", JSON.stringify(product.price * quantity));
   localStorage.setItem("selectedAddress",JSON.stringify(address));
   localStorage.setItem("selectedPaymentMethod",JSON.stringify(paymentMethod));
-
-  if (paymentMethod === "Cash on Delivery") {
-    router.push("/order/confirmation");
-  } else {
-    openRazorpayCheckout(
-                    product.price,
-                    () => {
-                      toast("Payment Successful!");
-                      localStorage.setItem("selectedPaymentMethod","Online")
-                      localStorage.setItem("paymentStatus","Paid");
-                      router.push("/order/confirmation");
-                    },
-                    () => {
-                      toast("Payment failed or verification failed!");
-                    }
-                  );
-    toast.info("Redirecting to payment gateway...");
-  }
+  localStorage.setItem("paymentStatus","Pending");
+  router.push("/order/confirmation");
 };
 
 

@@ -6,15 +6,11 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { SubmitHandler, useForm } from "react-hook-form";
 import {
   Banknote,
-  CreditCard,
-  ShoppingCartIcon,
   Smartphone,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import Image from "next/image";
 import { Button } from "./button";
-import { toast } from "react-toastify";
-import { openRazorpayCheckout } from "@/app/utils/paymentUtils";
+
 
 function PaymentForm({
   setShippingForm,
@@ -22,12 +18,10 @@ function PaymentForm({
   setShippingForm: (data: PaymentFormInputs) => void;
 }) {
   const [paymentMethod, setPaymentMethod] = useState<
-    "cod" | "online" | "card" | null
+    "cod" | "Online" | "card" | null
   >(null);
 
   const {
-    register,
-    handleSubmit,
     formState: { errors },
   } = useForm<PaymentFormInputs>({
     resolver: zodResolver(PaymentFormSchema),
@@ -79,7 +73,7 @@ function PaymentForm({
                     : ""
                 }
                 bg-gradient-to-r from-blue-400 to-blue-700 hover:from-blue-500 hover:to-blue-800 cursor-pointer`}
-            onClick={() => setPaymentMethod("online")}
+            onClick={() => setPaymentMethod("Online")}
           >
             <Smartphone className="w-5 h-5" />
             Online Payment
@@ -106,26 +100,17 @@ function PaymentForm({
           </button>
         </div>
       )}
-      {paymentMethod === "online" && (
+      {paymentMethod === "Online" && (
         <div className="flex flex-col gap-4">
           <h3 className="text-lg font-medium">You selected Online Payment</h3>
           <button
             className="w-full bg-blue-600 text-white p-2 rounded-lg"
-            onClick={async () => {
-              openRazorpayCheckout(
-                total,
-                () => {
-                  toast("Payment Successful!");
-                  localStorage.setItem("paymentStatus","Paid");
-                  router.push("/order/confirmation");
-                },
-                () => {
-                  toast("Payment failed or verification failed!");
-                }
-              );
+            onClick={() => {
+                localStorage.setItem("selectedPaymentMethod","Online");
+                router.push("/order/confirmation")
             }}
           >
-            Pay Now
+            Confirm Order
           </button>
         </div>
       )}
