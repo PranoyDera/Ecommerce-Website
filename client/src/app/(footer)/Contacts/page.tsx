@@ -1,11 +1,62 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
+import { toast } from "sonner";
 
 const ContactPage = () => {
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [country, setCountry] = useState("");
+  const [phone, setPhone] = useState("");
+  const [email, setEmail] = useState("");
+  const [inquiryType, setInquiryType] = useState("General");
+  const [message, setMessage] = useState("");
+  const [offersOptIn, setOffersOptIn] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    const formData = {
+      firstName,
+      lastName,
+      country,
+      phone,
+      email,
+      inquiryType,
+      message,
+      offersOptIn,
+    };
+
+    try {
+      const res = await fetch("http://localhost:5000/api/feedback", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        toast("✅ Feedback submitted!");
+        setFirstName("");
+        setLastName("");
+        setCountry("");
+        setPhone("");
+        setEmail("");
+        setInquiryType("General");
+        setMessage("");
+        setOffersOptIn(false);
+      } else {
+        toast( data.message);
+      }
+    } catch (err) {
+      console.error("Submit error:", err);
+      toast("❌ Failed to submit feedback");
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-3 bg-[url('/background4.jpg')] bg-cover bg-center w-[95%] mx-auto rounded-2xl my-2">
-      <div className="max-w-6xl w-full grid md:grid-cols-2 gap-40  rounded-2xl  overflow-hidden">
+      <div className="max-w-6xl w-full grid md:grid-cols-2 gap-40 rounded-2xl overflow-hidden">
         {/* Left Side - Info */}
         <div className="p-10 flex flex-col justify-between bg-white/0">
           <div>
@@ -25,7 +76,7 @@ const ContactPage = () => {
               <p>
                 Ecospace Building 2B <br />
                 Street Number 372 <br />
-                Eco-space buisness park, New Town, 5532 <br />
+                Eco-space business park, New Town, 5532 <br />
                 Mon–Fri | 09:00 – 20:00 (local time)
               </p>
             </div>
@@ -48,8 +99,8 @@ const ContactPage = () => {
         </div>
 
         {/* Right Side - Form */}
-        <div className="p-5  flex items-center bg-white w-[500px] rounded-2xl">
-          <form className="w-full space-y-6">
+        <div className="p-5 flex items-center bg-white w-[500px] rounded-2xl">
+          <form className="w-full space-y-6" onSubmit={handleSubmit}>
             <h3 className="text-xl font-semibold text-gray-800 mb-4">
               Tell Us What You Need
             </h3>
@@ -61,28 +112,38 @@ const ContactPage = () => {
               <input
                 type="text"
                 placeholder="First Name"
+                value={firstName}
+                onChange={(e) => setFirstName(e.target.value)}
                 className="w-full border border-gray-300 rounded-3xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-black"
               />
               <input
                 type="text"
                 placeholder="Last Name"
-                 className="w-full border border-gray-300 rounded-3xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-black"
+                value={lastName}
+                onChange={(e) => setLastName(e.target.value)}
+                className="w-full border border-gray-300 rounded-3xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-black"
               />
               <input
                 type="text"
                 placeholder="Country"
-                 className="w-full border border-gray-300 rounded-3xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-black"
+                value={country}
+                onChange={(e) => setCountry(e.target.value)}
+                className="w-full border border-gray-300 rounded-3xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-black"
               />
               <input
                 type="text"
                 placeholder="Phone Number"
-                 className="w-full border border-gray-300 rounded-3xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-black"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                className="w-full border border-gray-300 rounded-3xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-black"
               />
             </div>
 
             <input
               type="email"
               placeholder="Email Address"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               className="w-full border border-gray-300 rounded-3xl px-4 py-2 focus:outline-none focus:ring-2 focus:ring-black"
             />
 
@@ -96,7 +157,12 @@ const ContactPage = () => {
                     <button
                       type="button"
                       key={item}
-                      className="px-4 py-2 border border-gray-300 rounded-full text-gray-600 hover:bg-gray-200"
+                      onClick={() => setInquiryType(item)}
+                      className={`px-4 py-2 border rounded-full ${
+                        inquiryType === item
+                          ? "bg-black text-white border-black"
+                          : "border-gray-300 text-gray-600 hover:bg-gray-200"
+                      }`}
                     >
                       {item}
                     </button>
@@ -108,11 +174,19 @@ const ContactPage = () => {
             <textarea
               placeholder="Message"
               rows={4}
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
               className="w-full border border-gray-300 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-gray-400"
             ></textarea>
 
             <div className="flex items-center space-x-2">
-              <input type="checkbox" id="offers" className="h-4 w-4" />
+              <input
+                type="checkbox"
+                id="offers"
+                checked={offersOptIn}
+                onChange={(e) => setOffersOptIn(e.target.checked)}
+                className="h-4 w-4"
+              />
               <label htmlFor="offers" className="text-gray-600 text-sm">
                 I'd like to receive exclusive offers and updates
               </label>
