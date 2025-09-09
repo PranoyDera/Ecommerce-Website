@@ -142,7 +142,7 @@ const ProductList = ({
       <div className="p-4 my-4">
         <Categories />
         {params === "products" && <Filter />}
-        <div className="grid grid-cols-2 sm:grid-cols-2 xl:grid-cols-4 2xl:grid-cols-4 gap-12">
+        <div className="grid grid-cols-1 md:grid-cols-1 xl:grid-cols-3 2xl:grid-cols-4 gap-12">
           {products.map((product) => (
             <ProductCard key={product.id} product={product} />
           ))}
@@ -158,13 +158,13 @@ const ProductList = ({
           View All Products
         </Link>
 
-        <Pagination className="mt-6 flex justify-center">
-          <PaginationContent className="flex items-center gap-2">
+        <Pagination className="mt-6 flex justify-center w-10 md:w-full">
+          <PaginationContent className="flex items-center md:gap-2 gap-0 justify-center">
             {/* Prev Button */}
             <PaginationItem>
               <PaginationPrevious
                 onClick={() => setPage((prev) => prev - 1)}
-                className="cursor-pointer hover:bg-gray-200 text-gray-900"
+                className="cursor-pointer hover:bg-gray-200 text-gray-900 text-xs md:text-sm"
                 aria-disabled={page === 1}
               />
             </PaginationItem>
@@ -176,7 +176,7 @@ const ProductList = ({
                   <PaginationLink
                     isActive={page === pageNumber}
                     onClick={() => setPage(pageNumber)}
-                    className={`cursor-pointer hover:bg-gray-200 ${
+                    className={`cursor-pointer hover:bg-gray-200 text-xs md:text-sm ${
                       page === pageNumber ? `border border-gray-400` : ``
                     } text-gray-900`}
                   >
@@ -190,7 +190,7 @@ const ProductList = ({
             <PaginationItem>
               <PaginationNext
                 onClick={() => setPage((prev) => prev + 1)}
-                className="cursor-pointer hover:bg-gray-200 text-gray-900"
+                className="cursor-pointer hover:bg-gray-200 text-gray-900 text-xs md:text-sm"
                 aria-disabled={page === totalPages}
               />
             </PaginationItem>

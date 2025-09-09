@@ -221,7 +221,7 @@ const AddressForm: React.FC<AddressFormProps> = ({
   return (
     <form
       onSubmit={handleSubmit}
-      className={`${width} mx-auto p-6 bg-white shadow-md rounded-2xl space-y-4`}
+      className={`${width} mx-auto md:p-6 p-4 bg-white shadow-md rounded-2xl space-y-4 text-xs md:text-sm`}
     >
       {/* Address Field */}
       <div className="flex flex-col gap-2">

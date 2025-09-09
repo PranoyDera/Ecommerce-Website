@@ -58,6 +58,11 @@ export function SearchBar() {
         ]}
         onChange={handleChange}
         onSubmit={onSubmit}
+        className="bg-white md:w-full w-35 h-10"
+        inputClassName="text-gray-800"
+        buttonClassName="bg-blue-500 hover:bg-blue-700"
+        placeholderClassName="text-gray-400"
+        canvasClassName="opacity-50"
       />
 
       {/* Suggestion dropdown */}
@@ -66,7 +71,7 @@ export function SearchBar() {
           {suggestions.map((s, i) => (
             <li
               key={i}
-              className="p-2 hover:bg-gray-100 cursor-pointer"
+              className="p-2 hover:bg-gray-100 cursor-pointer "
               onClick={() => (window.location.href = s.url)}
             >
               {s.label}

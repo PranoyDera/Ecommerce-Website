@@ -64,7 +64,7 @@ function EditAddress() {
 
   return (
     <div className="min-h-screen w-[95%] bg-[url('/userpage.jpg')] bg-cover bg-center flex flex-col p-6 mx-auto my-4 rounded-3xl">
-      <div className="w-[80vw] bg-white/90 mx-auto p-8 rounded-2xl shadow-xl relative">
+      <div className="w-full md:w-[80vw] bg-white/90 mx-auto md:p-8 p-4 rounded-2xl shadow-xl relative">
         {/* Header with back button */}
         <div className="flex items-center gap-3 mb-6">
           <button

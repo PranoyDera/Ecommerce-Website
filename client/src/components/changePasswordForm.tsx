@@ -57,7 +57,7 @@ export function ChangePasswordForm() {
   };
  
   return (
-    <div className="shadow-input w-full max-w-md rounded-none bg-white p-0 md:rounded-2xl md:p-2 dark:bg-black">
+    <div className="shadow-input md:w-full w-80 max-w-md rounded-2xl bg-white p-1 md:rounded-2xl md:p-2 dark:bg-black">
         <div className="flex w-full items-center justify-end">
         <button type="button" onClick={() => router.back()} className="flex items-center justify-center text-gray-600 hover:text-black transition cursor-pointer" > 
             <X size={20} className="mr-1" /> 

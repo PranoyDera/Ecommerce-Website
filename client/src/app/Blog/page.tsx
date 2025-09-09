@@ -82,7 +82,7 @@ const BlogPage = () => {
     // Show Loader if no blogs
     <Loader />
   ) : (
-    <div className="min-h-[300px] flex items-center gap-4">
+    <div className="min-h-[300px] grid items-center gap-4 grid-cols-1 md:grid-cols-3">
       {blogs.map((blog) => (
         <BlogCard
           key={blog._id}

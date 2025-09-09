@@ -44,7 +44,6 @@ export default function OrderConfirmation() {
 
   const paymentStatus = localStorage.getItem("paymentStatus");
 
-  // ✅ Local state for buyNow items
   const [buyNowItems, setBuyNowItems] = useState<CartItem[] | null>(null);
 
   // ✅ Load user info, address, payment
@@ -143,110 +142,107 @@ export default function OrderConfirmation() {
   }, [cart, buyNowItems]);
 
   // ✅ Place order
-// ✅ Place order
-const handleOrderPlace = async () => {
-  const checkoutMode = localStorage.getItem("checkoutMode");
+  const handleOrderPlace = async () => {
+    const checkoutMode = localStorage.getItem("checkoutMode");
 
-  try {
-    let orderPayload;
+    try {
+      let orderPayload;
 
-    if (checkoutMode === "buyNow" && buyNowItems) {
-      orderPayload = {
-        userId,
-        items: buyNowItems,
-        totalAmount: orderTotal,
-        paymentMethod,
-        paymentStatus,
-        address: selectedAddress,
-      };
-    } else {
-      if (!userId || cart.length === 0) {
-        toast("No items in cart to place an order.");
+      if (checkoutMode === "buyNow" && buyNowItems) {
+        orderPayload = {
+          userId,
+          items: buyNowItems,
+          totalAmount: orderTotal,
+          paymentMethod,
+          paymentStatus,
+          address: selectedAddress,
+        };
+      } else {
+        if (!userId || cart.length === 0) {
+          toast("No items in cart to place an order.");
+          return;
+        }
+
+        orderPayload = {
+          userId,
+          items: cart,
+          totalAmount: orderTotal,
+          paymentMethod,
+          paymentStatus,
+          address: selectedAddress,
+        };
+      }
+
+      // 🔥 ONLINE PAYMENT FLOW
+      if (paymentMethod === "Online") {
+        const total = Number(localStorage.getItem("total"));
+
+        openRazorpayCheckout(
+          total,
+          async () => {
+            toast.success("Order Placed!");
+
+            const orderRes = await fetch("http://localhost:5000/api/orders", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                ...orderPayload,
+                paymentStatus: "Paid",
+              }),
+            });
+
+            if (!orderRes.ok) throw new Error("Failed to save order");
+
+            if (checkoutMode !== "buyNow") {
+              await fetch(`http://localhost:5000/api/cart/${userId}`, {
+                method: "DELETE",
+              });
+              setCart([]);
+              await fetchCart(userId);
+            }
+
+            localStorage.removeItem("checkoutMode");
+            setOrderTotal("0");
+            setIsModalOpen(true);
+            fetchOrders();
+            router.push("/");
+          },
+          () => {
+            toast.error("❌ Payment failed or verification failed!");
+          }
+        );
+
         return;
       }
 
-      orderPayload = {
-        userId,
-        items: cart,
-        totalAmount: orderTotal,
-        paymentMethod,
-        paymentStatus,
-        address: selectedAddress,
-      };
-    }
-
-    // 🔥 ONLINE PAYMENT FLOW
-    if (paymentMethod === "Online") {
-      const total = Number(localStorage.getItem("total"));
-
-      openRazorpayCheckout(
-        total,
-        async () => {
-          toast.success("Order Placed!");
-
-          // Save order only after payment success
-          const orderRes = await fetch("http://localhost:5000/api/orders", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              ...orderPayload,
-              paymentStatus: "Paid", // mark as paid
-            }),
-          });
-
-          if (!orderRes.ok) throw new Error("Failed to save order");
-
-          if (checkoutMode !== "buyNow") {
-            await fetch(`http://localhost:5000/api/cart/${userId}`, {
-              method: "DELETE",
-            });
-            setCart([]);
-            await fetchCart(userId);
-          }
-
-          localStorage.removeItem("checkoutMode");
-          setOrderTotal("0");
-          setIsModalOpen(true);
-          fetchOrders();
-          router.push("/");
-        },
-        () => {
-          toast.error("❌ Payment failed or verification failed!");
-        }
-      );
-
-      return; // stop here, don’t run COD flow
-    }
-
-    // 🔥 COD OR OTHER METHOD
-    const orderRes = await fetch("http://localhost:5000/api/orders", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(orderPayload),
-    });
-
-    if (!orderRes.ok) throw new Error("Failed to place order");
-
-    if (checkoutMode === "buyNow") {
-      localStorage.removeItem("order");
-    } else {
-      await fetch(`http://localhost:5000/api/cart/${userId}`, {
-        method: "DELETE",
+      // 🔥 COD OR OTHER METHOD
+      const orderRes = await fetch("http://localhost:5000/api/orders", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(orderPayload),
       });
-      setCart([]);
-      await fetchCart(userId);
+
+      if (!orderRes.ok) throw new Error("Failed to place order");
+
+      if (checkoutMode === "buyNow") {
+        localStorage.removeItem("order");
+      } else {
+        await fetch(`http://localhost:5000/api/cart/${userId}`, {
+          method: "DELETE",
+        });
+        setCart([]);
+        await fetchCart(userId);
+      }
+
+      localStorage.removeItem("checkoutMode");
+      setOrderTotal("0");
+      setIsModalOpen(true);
+      fetchOrders();
+    } catch (err) {
+      console.error("Error placing order:", err);
+      toast.error("❌ Failed to place order, please try again.");
     }
-
-    localStorage.removeItem("checkoutMode");
-    setOrderTotal("0");
-    setIsModalOpen(true);
-    fetchOrders();
-  } catch (err) {
-    console.error("Error placing order:", err);
-    toast.error("❌ Failed to place order, please try again.");
-  }
-};
-
+  };
 
   if (loading)
     return (
@@ -256,7 +252,7 @@ const handleOrderPlace = async () => {
     );
 
   return (
-    <div className="min-h-screen bg-gray-100 py-12 px-20 w-[95%] mx-auto my-4 rounded-2xl">
+    <div className="min-h-screen bg-gray-100 py-8 px-4 sm:px-6 md:px-12 lg:px-20 w-[95%] mx-auto my-4 rounded-2xl">
       <SuccessModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
@@ -266,46 +262,41 @@ const handleOrderPlace = async () => {
       />
 
       {/* Header */}
-      <div className="flex justify-between items-center pb-6 mb-6">
-        <h1 className="text-2xl font-bold text-gray-800">Order Confirmation</h1>
-        <div className="flex items-center gap-6">
-          <p className="text-lg font-semibold text-gray-600">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center md:pb-6 pb-4 md:mb-6 mb-4 gap-4">
+        <h1 className="text-xl sm:text-2xl font-bold text-gray-800">
+          Order Confirmation
+        </h1>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:gap-6 gap-2">
+          <p className="text-base sm:text-lg font-semibold text-gray-600">
             Order Total:{" "}
-            <span className="text-xl font-bold">
+            <span className="text-lg sm:text-xl font-bold">
               ${Number(orderTotal).toFixed(2)}
             </span>
           </p>
-          {paymentMethod === "Online" ? (
-            <Button
-              onClick={handleOrderPlace}
-              className="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-lg font-semibold shadow transition-all cursor-pointer hover:scale-105"
-            >
-              Pay and Place Order
-            </Button>
-          ) : (
-            <Button
-              onClick={handleOrderPlace}
-              className="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-lg font-semibold shadow transition-all cursor-pointer hover:scale-105"
-            >
-              Place Order
-            </Button>
-          )}
+          <Button
+            onClick={handleOrderPlace}
+            className="bg-green-500 hover:bg-green-600 text-white px-4 sm:px-6 py-2 rounded-lg font-semibold shadow transition-all cursor-pointer hover:scale-105"
+          >
+            {paymentMethod === "Online" ? "Pay and Place Order" : "Place Order"}
+          </Button>
         </div>
       </div>
 
       {/* User, Address, Payment Info */}
-      <div className="w-full mx-auto bg-white p-4 mb-4">
-        <div className="grid md:grid-cols-2 gap-6 pb-6 mb-6">
-          <div className="rounded-xl p-4">
-            <div className="flex justify-between items-center border-b-2 border-black border-dashed">
+      <div className="w-full mx-auto bg-white p-4 mb-6 rounded-xl">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Your Info */}
+          <div className="rounded-xl p-4 border border-gray-200">
+            <div className="flex justify-between items-center border-b border-dashed border-gray-300 pb-2">
               <h2 className="text-lg font-semibold">Your Information</h2>
             </div>
             <p className="mt-2 text-gray-600">{username}</p>
             <p className="text-gray-600">{email}</p>
           </div>
 
-          <div className="rounded-xl p-4">
-            <div className="flex justify-between items-center border-b-2 border-black border-dashed">
+          {/* Address */}
+          <div className="rounded-xl p-4 border border-gray-200">
+            <div className="flex justify-between items-center border-b border-dashed border-gray-300 pb-2">
               <h2 className="text-lg font-semibold">Shipping Address</h2>
               <Link href="/cart?step=2">
                 <button className="text-blue-500 hover:underline text-sm cursor-pointer">
@@ -325,20 +316,22 @@ const handleOrderPlace = async () => {
             )}
           </div>
 
-          <div className="rounded-xl p-4">
-            <div className="flex justify-between items-center border-b-2 border-black border-dashed">
+          {/* Payment */}
+          <div className="rounded-xl p-4 border border-gray-200">
+            <div className="flex justify-between items-center border-b border-dashed border-gray-300 pb-2">
               <h2 className="text-lg font-semibold">Payment</h2>
             </div>
             <p className="mt-2 text-gray-600">
-              Selected Payment Method: {paymentMethod ?? "Not Selected"}
+              Selected: {paymentMethod ?? "Not Selected"}
             </p>
             <p className="mt-2 text-gray-600">
-              Payment Status: {paymentStatus ?? "Pending"}
+              Status: {paymentStatus ?? "Pending"}
             </p>
           </div>
 
-          <div className="rounded-xl p-4">
-            <div className="flex justify-between items-center border-b-2 border-black border-dashed">
+          {/* Billing */}
+          <div className="rounded-xl p-4 border border-gray-200">
+            <div className="flex justify-between items-center border-b border-dashed border-gray-300 pb-2">
               <h2 className="text-lg font-semibold">Billing Address</h2>
             </div>
             <p className="mt-2 text-gray-600">{username}</p>
@@ -352,11 +345,11 @@ const handleOrderPlace = async () => {
       </div>
 
       {/* Items Table */}
-      <div>
+      <div className="overflow-x-auto bg-white rounded-xl p-4">
         {(buyNowItems ?? cart).length === 0 ? (
           <p className="text-gray-500">Your cart is empty.</p>
         ) : (
-          <table className="w-full text-left border-collapse">
+          <table className="w-full min-w-[600px] text-left border-collapse">
             <thead>
               <tr className="text-gray-600 text-sm border-b">
                 <th className="pb-3">Item</th>
@@ -376,7 +369,7 @@ const handleOrderPlace = async () => {
                       height={60}
                       className="rounded-lg"
                     />
-                    <span>{item.title}</span>
+                    <span className="text-sm sm:text-base">{item.title}</span>
                   </td>
                   <td className="py-4">{item.quantity}</td>
                   <td className="py-4">${item.price.toFixed(2)}</td>

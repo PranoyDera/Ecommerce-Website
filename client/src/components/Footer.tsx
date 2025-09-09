@@ -31,7 +31,7 @@ const Footer = () => {
           {/* Links */}
           <div>
             <h4 className="font-semibold mb-3 text-white">Links</h4>
-            <ul className="space-y-2 text-gray-400">
+            <ul className="space-y-2 text-gray-400 whitespace-nowrap">
               <li><Link href="/">Home</Link></li>
               <li><Link href="/Contacts">Contacts</Link></li>
               <li><Link href="/Privacy-Policy">Privacy Policy</Link> </li>
@@ -42,7 +42,7 @@ const Footer = () => {
           {/* Products */}
           <div>
             <h4 className="font-semibold mb-3 text-white">Explore</h4>
-            <ul className="space-y-2 text-gray-400">
+            <ul className="space-y-2 text-gray-400 whitespace-nowrap">
               <li><Link href={"/products"}>All Products</Link></li>
               <li><Link href={"Best-seller"}>Best Seller</Link></li>
               <li><Link href={"New-Arrivals"}>New Arrivals</Link></li>
@@ -53,7 +53,7 @@ const Footer = () => {
           {/* Company */}
           <div>
             <h4 className="font-semibold mb-3 text-white">Company</h4>
-            <ul className="space-y-2 text-gray-400">
+            <ul className="space-y-2 text-gray-400 whitespace-nowrap">
               <li><Link href="/About">About</Link></li>
               <li><Link href="/Contacts">Contacts</Link></li>
               <li><Link href="/Blog">Blog</Link></li>
@@ -71,7 +71,6 @@ const Footer = () => {
         <div className="space-x-4 mt-2 md:mt-0">
           <Link href="Privacy-Policy" className="hover:text-white">Privacy Policy</Link>
           <Link href="Terms" className="hover:text-white">Terms</Link>
-          <Link href="Code-of-conduct" className="hover:text-white">Code of conduct</Link>
         </div>
       </div>
     </footer>

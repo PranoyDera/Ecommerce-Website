@@ -153,11 +153,11 @@ export default function OrderList() {
                     setSelectedOrder(order._id);
                     setOpen(true);
                   }}
-                  className="bg-red-600 hover:bg-red-700 text-white px-5 py-2 rounded-xl shadow-md transition"
+                  className="bg-red-600 hover:bg-red-700 text-white px-5 py-2 rounded-xl shadow-md transition whitespace-nowrap w-50 md:w-40 cursor-pointer"
                 >
                   Cancel Order
                 </button>
-              </div>
+              </div> 
             </div>
           ))}
         </div>

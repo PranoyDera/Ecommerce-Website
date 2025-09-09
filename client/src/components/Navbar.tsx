@@ -19,7 +19,7 @@ function Navbar() {
         const res = await fetch("http://localhost:5000/api/auth/me", {
           credentials: "include",
           headers: {
-            Authorization: `Bearer ${sessionStorage.getItem("accessToken")}`, // keep consistent
+            Authorization: `Bearer ${sessionStorage.getItem("accessToken")}`,
           },
         })
         if (res.ok) {
@@ -35,7 +35,7 @@ function Navbar() {
   }, [])
 
   return (
-    <nav className="w-[95%] flex justify-between border border-gray-200 mx-auto items-center mt-2 rounded-4xl px-4 ">
+    <nav className="w-[95%] flex justify-center border border-gray-200 mx-auto items-center mt-2 rounded-4xl md:px-4 px-2 h-15">
       {/* Left */}
       <Link href="/">
         <Image
@@ -43,17 +43,21 @@ function Navbar() {
           alt="Pro-cart"
           width={200}
           height={36}
-          className="w-20 h-6 md:w-50 md:h-15"
+          className="w-30 h-10 md:w-50 md:h-15"
         />
       </Link>
-      <SearchBar />
+
+      {/* Search bar hidden on small screens */}
+      <div className="hidden md:block flex-1 px-4">
+        <SearchBar />
+      </div>
+
       {/* Right */}
       <div className="flex items-center justify-center gap-6">
-        
         <Link href="/">
           <Home className="w-4 h-4 text-gray-500" />
         </Link>
-        <OrderIcon/>
+        <OrderIcon />
         <ShoppingCartIcon />
 
         <Link href="/Profile" className="flex items-center">

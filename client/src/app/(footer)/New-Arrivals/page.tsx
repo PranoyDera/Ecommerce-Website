@@ -21,7 +21,7 @@ function NewArrivals() {
   return (
    <div className="w-[95%] mx-auto my-8 rounded-3xl bg-gray-800 p-4">
   {/* Section Heading */}
-  <h2 className="text-6xl font-bold text-white mb-6 text-center">
+  <h2 className="md:text-6xl text-4xl font-bold text-white mb-6 text-center">
     <ColourfulText text="All New Arrivals"></ColourfulText>
   </h2>
 

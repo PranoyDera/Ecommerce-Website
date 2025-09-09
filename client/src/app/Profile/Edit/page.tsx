@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import { Camera, ArrowLeft } from "lucide-react";
-import { toast } from "react-toastify";
+import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import Loader from "@/components/Loader2";
 import { Label } from "@/components/ui/label";
