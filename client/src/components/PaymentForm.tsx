@@ -15,7 +15,8 @@ import { Button } from "./button";
 function PaymentForm({
   setShippingForm,
 }: {
-  setShippingForm: (data: PaymentFormInputs) => void;
+  setShippingForm?: (data: PaymentFormInputs) => void;
+
 }) {
   const [paymentMethod, setPaymentMethod] = useState<
     "cod" | "Online" | "card" | null
@@ -28,15 +29,6 @@ function PaymentForm({
   });
 
   const router = useRouter();
-
-  const handlePaymentForm: SubmitHandler<PaymentFormInputs> = (data) => {
-    // save card form if card selected
-    if (paymentMethod === "card") {
-      setShippingForm(data);
-    }
-    // redirect to success/next step
-    router.push("/order/confirmation");
-  };
   const total = Number(localStorage.getItem("total") || 0);
 
   return (

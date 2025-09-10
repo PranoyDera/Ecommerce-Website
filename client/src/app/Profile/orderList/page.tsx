@@ -92,11 +92,11 @@ export default function OrderList() {
               {/* Order Header */}
               <div className="flex justify-between items-center mb-4">
                 <div>
-                  <p className="text-sm text-gray-500">
+                  <p className="md:text-sm text-xs text-gray-500">
                     <span className="font-medium">Order ID:</span>{" "}
                     <span className="font-mono">{order._id}</span>
                   </p>
-                  <p className="text-sm text-gray-500">
+                  <p className="md:text-sm text-xs text-gray-500">
                     Placed on:{" "}
                     <span className="font-medium">
                       {new Date(order.createdAt).toLocaleDateString()}
@@ -140,12 +140,12 @@ export default function OrderList() {
               {/* Order Footer */}
               <div className="flex justify-between items-center mt-6">
                 <div>
-                  <p className="text-lg font-semibold text-gray-800">
+                  <p className="md:text-lg text-sm font-semibold text-gray-800">
                     Total: ${order.totalAmount.toFixed(2)}
                   </p>
-                  <p className="text-sm text-gray-600">
+                  <p className="md:text-sm text-xs text-gray-600">
                     Payment Method:{" "}
-                    <span className="capitalize font-medium">{order.paymentMethod}</span>
+                    <span className="capitalize font-medium">{order.paymentMethod === "cod"?"Cash On delivery":"Online"}</span>
                   </p>
                 </div>
                 <button
@@ -153,7 +153,7 @@ export default function OrderList() {
                     setSelectedOrder(order._id);
                     setOpen(true);
                   }}
-                  className="bg-red-600 hover:bg-red-700 text-white px-5 py-2 rounded-xl shadow-md transition whitespace-nowrap w-50 md:w-40 cursor-pointer"
+                  className="bg-red-600 hover:bg-red-700 text-white text-xs md:text-sm px-3 md:px-5 py-2 rounded-xl shadow-md transition whitespace-nowrap w-25 justify-center items-center md:w-40 cursor-pointer"
                 >
                   Cancel Order
                 </button>

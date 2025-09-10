@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import Select from "react-select";
-import { toast } from "react-toastify";
+import { toast } from "sonner";
 
 type Country = { country: string };
 type State = { name: string };
@@ -47,7 +47,7 @@ const AddressForm: React.FC<AddressFormProps> = ({
   const BASE_URL = "https://countriesnow.space/api/v0.1";
   const isEdit = Boolean(addressId);
 
-  // ✅ Fetch countries
+
   useEffect(() => {
     const fetchCountries = async () => {
       try {
@@ -61,7 +61,7 @@ const AddressForm: React.FC<AddressFormProps> = ({
     fetchCountries();
   }, []);
 
-  // ✅ Fetch states when country changes
+  
   useEffect(() => {
     if (!selectedCountry) return;
     const fetchStates = async () => {
@@ -86,7 +86,7 @@ const AddressForm: React.FC<AddressFormProps> = ({
     fetchStates();
   }, [selectedCountry]);
 
-  // ✅ Fetch cities when state changes
+  
   useEffect(() => {
     if (!selectedCountry || !selectedState) return;
     const fetchCities = async () => {
@@ -109,7 +109,7 @@ const AddressForm: React.FC<AddressFormProps> = ({
     fetchCities();
   }, [selectedState]);
 
-  // ✅ Prefill data when editing
+  
   useEffect(() => {
     const fetchAddress = async () => {
       if (!addressId) return;
@@ -141,7 +141,7 @@ const AddressForm: React.FC<AddressFormProps> = ({
     fetchAddress();
   }, [addressId]);
 
-  // ✅ Handle Submit
+  
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -182,7 +182,6 @@ const AddressForm: React.FC<AddressFormProps> = ({
         return;
       }
 
-      // 🔸 Determine the saved address object from API response (supports multiple shapes)
       const savedAddress: SavedAddress =
         data?.address ??
         (Array.isArray(data?.addresses) ? data.addresses[data.addresses.length - 1] : undefined) ??

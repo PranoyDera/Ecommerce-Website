@@ -8,11 +8,11 @@ export function PlaceholdersAndVanishInput({
   placeholders,
   onChange,
   onSubmit,
-  className,        // 👈 wrapper class
-  inputClassName,   // 👈 input field styles
-  buttonClassName,  // 👈 submit button styles
-  placeholderClassName, // 👈 placeholder text styles
-  canvasClassName,  // 👈 canvas styles
+  className,        
+  inputClassName,   
+  buttonClassName,  
+  placeholderClassName, 
+  canvasClassName, 
 }: {
   placeholders: string[];
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
@@ -212,7 +212,7 @@ export function PlaceholdersAndVanishInput({
         value={value}
         type="text"
         className={cn(
-          "w-full relative text-sm sm:text-base z-50 border-none bg-transparent h-full rounded-full focus:outline-none focus:ring-0 pl-4 sm:pl-10 pr-20",
+          "w-full relative text-sm sm:text-base z-50 border-none bg-transparent h-full rounded-lg focus:outline-none focus:ring-0 pl-4 sm:pl-10 pr-20",
           animating && "text-transparent",
           inputClassName
         )}
@@ -222,21 +222,21 @@ export function PlaceholdersAndVanishInput({
         disabled={!value}
         type="submit"
         className={cn(
-          "absolute right-2 top-1/2 z-50 -translate-y-1/2 h-8 w-8 rounded-full flex items-center justify-center disabled:bg-gray-100 bg-black text-white transition duration-200",
+          "absolute right-2 top-1/2 z-50 -translate-y-1/2 h-10 w-10 rounded-full flex items-center justify-center disabled:bg-blue-50 cursor-pointer text-gray-600 transition duration-200",
           buttonClassName
         )}
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
-          width="20"
-          height="20"
+          width="25"
+          height="25"
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"
           strokeWidth="2"
           strokeLinecap="round"
           strokeLinejoin="round"
-          className="h-4 w-4"
+          className="h-5 w-5"
         >
           <path stroke="none" d="M0 0h24v24H0z" fill="none" />
           <circle cx="11" cy="11" r="8" />

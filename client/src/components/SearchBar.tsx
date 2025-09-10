@@ -58,16 +58,16 @@ export function SearchBar() {
         ]}
         onChange={handleChange}
         onSubmit={onSubmit}
-        className="bg-white md:w-full w-35 h-10"
-        inputClassName="text-gray-800"
-        buttonClassName="bg-blue-500 hover:bg-blue-700"
+        className="bg-white w-full h-10 text-black rounded-lg"
+        inputClassName="bg-blue-50"
+        buttonClassName=""
         placeholderClassName="text-gray-400"
         canvasClassName="opacity-50"
       />
 
       {/* Suggestion dropdown */}
       {suggestions.length > 0 && (
-        <ul className="absolute top-full mt-2 w-full bg-white shadow-lg rounded-lg border z-50">
+        <ul className="absolute top-full mt-2 w-full bg-white shadow-lg rounded-lg  z-50">
           {suggestions.map((s, i) => (
             <li
               key={i}

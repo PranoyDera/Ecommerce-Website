@@ -39,7 +39,7 @@ const SuccessModal: React.FC<SuccessModalProps> = ({
           exit={{ opacity: 0 }}
         >
           <motion.div
-            className="bg-white rounded-2xl shadow-xl p-8 text-center max-w-sm w-full"
+            className="bg-white rounded-2xl shadow-xl p-8 text-center max-w-sm w-[80%]"
             initial={{ scale: 0.8, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.8, opacity: 0 }}

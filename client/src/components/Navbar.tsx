@@ -6,11 +6,9 @@ import React, { useEffect, useState } from 'react'
 import { SearchBar } from './SearchBar'
 import { Home } from 'lucide-react'
 import ShoppingCartIcon from './ShoppingCartIcon'
-import { useRouter } from 'next/navigation'
 import OrderIcon from './OrderIcon'
 
 function Navbar() {
-  const router = useRouter()
   const [user, setUser] = useState<any>(null)
 
   useEffect(() => {
@@ -35,7 +33,7 @@ function Navbar() {
   }, [])
 
   return (
-    <nav className="w-[95%] flex justify-center border border-gray-200 mx-auto items-center mt-2 rounded-4xl md:px-4 px-2 h-15">
+    <nav className="w-[95%] flex justify-between border border-gray-200 mx-auto items-center mt-2 rounded-4xl md:px-4 px-2 h-15">
       {/* Left */}
       <Link href="/">
         <Image
@@ -48,7 +46,7 @@ function Navbar() {
       </Link>
 
       {/* Search bar hidden on small screens */}
-      <div className="hidden md:block flex-1 px-4">
+      <div className="hidden md:block">
         <SearchBar />
       </div>
 

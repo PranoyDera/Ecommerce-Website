@@ -51,7 +51,7 @@ export default function CartPage() {
   const [addresses, setAddresses] = useState<Address[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingAddresses, setLoadingAddresses] = useState(true);
-  const {removeFromCart} = useCart();
+  const { removeFromCart } = useCart();
 
   const userId =
     typeof window !== "undefined" ? localStorage.getItem("userId") : null;
@@ -60,16 +60,16 @@ export default function CartPage() {
 
   // 🔹 Fetch cart
   const fetchCart = async () => {
-      try {
-        const res = await fetch(`http://localhost:5000/api/cart/${userId}`);
-        const data = await res.json();
-        setCart(data);
-      } catch (err) {
-        console.error("Error fetching cart:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
+    try {
+      const res = await fetch(`http://localhost:5000/api/cart/${userId}`);
+      const data = await res.json();
+      setCart(data);
+    } catch (err) {
+      console.error("Error fetching cart:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
   useEffect(() => {
     if (!userId) return;
     fetchCart();
@@ -86,7 +86,7 @@ export default function CartPage() {
         const data = await res.json();
         setAddresses(data || []);
       } catch (err) {
-        toast.error("Error fetching addresses:", err);
+        toast.error(`Error fetching addresses:${err}`);
       } finally {
         setLoadingAddresses(false);
       }
@@ -95,15 +95,15 @@ export default function CartPage() {
   }, [token]);
 
   // 🔹 Remove item
-   const handleRemove = async({productId}:{productId:string}) => {
-        const userId = localStorage.getItem("userId");
-        if(!userId){
-          toast("User not logged in")
-          return;
-        }
-        await removeFromCart(userId,productId);
-        fetchCart();
-   }
+  const handleRemove = async ({ productId }: { productId: string }) => {
+    const userId = localStorage.getItem("userId");
+    if (!userId) {
+      toast("User not logged in");
+      return;
+    }
+    await removeFromCart(userId, productId);
+    fetchCart();
+  };
   // ✅ Totals
   const subTotal =
     cart?.items.reduce((acc, item) => acc + item.price * item.quantity, 0) ?? 0;
@@ -136,18 +136,19 @@ export default function CartPage() {
     { id: 3, title: "Payment Method" },
   ];
 
-  if (loading) return (
-  <div className="h-screen w-[95%] mx-auto rounded-3xl bg-white my-4 items-center justify-center flex">
-    <Loader/>
-  </div>
-  )
+  if (loading)
+    return (
+      <div className="h-screen w-[95%] mx-auto rounded-3xl bg-white my-4 items-center justify-center flex">
+        <Loader />
+      </div>
+    );
   return (
     <div className="w-[95%] rounded-2xl mx-auto flex flex-col gap-8 items-center justify-center my-4 bg-[url('/cartPage.jpg')] bg-cover bg-no-repeat bg-top p-4">
       {/* TITLE */}
       <h1 className="text-2xl font-medium">Your Cart</h1>
 
       {/* STEPS */}
-      <div className="flex flex-col lg:flex-row items-center gap-8 lg:gap-16 bg-white/60 rounded-full p-4">
+      <div className="flex flex-col lg:flex-row items-center gap-8 lg:gap-16 bg-white/60 rounded-3xl justify-center p-4">
         {steps.map((step) => (
           <div className="flex items-center gap-2" key={step.id}>
             <div
@@ -205,8 +206,8 @@ export default function CartPage() {
                     {/* DELETE */}
                     <button
                       onClick={() => {
-                      console.log("productID:",item.productId);
-                      handleRemove({productId:item.productId})}}
+                        handleRemove({ productId: item.productId });
+                      }}
                       className="w-8 h-8 rounded-full hover:bg-red-300 transition-all duration-300 bg-red-100 text-red-400 flex items-center justify-center cursor-pointer"
                     >
                       <Trash2 className="w-3 h-3" />

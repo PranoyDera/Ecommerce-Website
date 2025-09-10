@@ -16,7 +16,7 @@ const AboutPage = () => {
 
       {/* Content Section */}
       <div className="flex flex-col gap-8">
-      <BackgroundGradient className="rounded-[22px] p-0 sm:p-10 bg-white dark:bg-zinc-900 grid md:grid-cols-2">
+      <BackgroundGradient className="rounded-[22px] md:p-10 p-4 bg-white dark:bg-zinc-900 grid md:grid-cols-2">
       {/* <div className="mt-12 bg-white rounded-2xl shadow-md p-8 md:p-12 max-w-6xl w-full grid md:grid-cols-2 gap-8 items-center"> */}
         {/* Right Image */}
         
@@ -43,9 +43,9 @@ const AboutPage = () => {
       {/* </div> */}
       </BackgroundGradient>
       {/* Content Section 2*/}
-      <BackgroundGradient className="rounded-[20px] p-0 sm:p-10 bg-white dark:bg-zinc-900 grid md:grid-cols-2">
+      <BackgroundGradient className="rounded-[20px] p-4 md:p-10 bg-white dark:bg-zinc-900 grid md:grid-cols-2">
         {/* Left Content */}
-        <div>
+        <div className="p-2">
           <h2 className="text-2xl font-bold text-gray-900 mb-4">Who We Are</h2>
           <p className="text-gray-600 mb-4 leading-relaxed">
             We’re a passionate team of innovators, creators, and problem-solvers
@@ -67,7 +67,7 @@ const AboutPage = () => {
           />
         </div>
       </BackgroundGradient>
-      <BackgroundGradient className="rounded-[20px] p-0 sm:p-10 bg-white dark:bg-zinc-900 grid md:grid-cols-2">
+      <BackgroundGradient className="rounded-[20px] p-4 md:p-10 bg-white dark:bg-zinc-900 grid md:grid-cols-2">
         {/* Right Image */}
         <div className="flex justify-center">
           <Image

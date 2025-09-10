@@ -41,7 +41,7 @@ export default function BuyNowModal({
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-xl p-6 w-full max-w-lg shadow-lg relative">
+      <div className="bg-white rounded-xl p-6 md:w-full w-[85%] max-w-lg shadow-lg relative">
         {/* Close button */}
         <button
           onClick={onClose}

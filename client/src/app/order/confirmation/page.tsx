@@ -180,7 +180,6 @@ export default function OrderConfirmation() {
         return;
       }
 
-      // 🔥 COD or other
       await fetch("http://localhost:5000/api/orders", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -203,7 +202,7 @@ export default function OrderConfirmation() {
       fetchOrders();
     } catch (err) {
       console.error("Error placing order:", err);
-      toast.error("❌ Failed to place order, please try again.");
+      toast.error("Failed to place order, please try again.");
     }
   };
 
@@ -227,7 +226,7 @@ export default function OrderConfirmation() {
       />
 
       {/* Header */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center pb-6 gap-4">
+      <div className="flex flex-col md:flex-row md:justify-between justify-center items-center md:items-center pb-6 gap-4">
         <h1 className="text-xl sm:text-2xl font-bold text-gray-800">
           Order Confirmation
         </h1>
@@ -255,7 +254,12 @@ export default function OrderConfirmation() {
           <p className="text-gray-600">{email}</p>
         </div>
         <div className="p-4 border rounded-xl">
-          <h2 className="text-lg font-semibold border-b pb-2">Shipping Address</h2>
+          <div className="flex justify-between border-b pb-2">
+            <h2 className="text-lg font-semibold ">
+            Shipping Address
+          </h2>
+          <Link href={"/cart?step=2"} className="text-blue-500 font-semibold">Edit</Link>
+          </div>
           {selectedAddress ? (
             <>
               <p className="mt-2 text-gray-600">{selectedAddress.address}</p>
@@ -270,11 +274,13 @@ export default function OrderConfirmation() {
         <div className="p-4 border rounded-xl">
           <h2 className="text-lg font-semibold border-b pb-2">Payment</h2>
           <p className="mt-2 text-gray-600">
-            Selected: {paymentMethod ?? "Not Selected"}
+            Selected Payment Type:{" "}
+            {paymentMethod === "cod"
+              ? "Cash On Delivery"
+              : paymentMethod ?? "Not Selected"}
           </p>
-          <p className="text-gray-600">
-            Status: {paymentStatus ?? "Pending"}
-          </p>
+
+          <p className="text-gray-600">Status: {paymentStatus ?? "Pending"}</p>
         </div>
       </div>
 
