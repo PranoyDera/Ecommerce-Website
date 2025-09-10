@@ -2,7 +2,7 @@
 import express from "express";
 import fetch from "node-fetch"; // On Node 18+ you can use global fetch
 
-import Blog from "../models/Blog.js"; // Blogs from DB
+import Blog from "../Models/Blog.js"; // Blogs from DB
 
 const router = express.Router();
 
