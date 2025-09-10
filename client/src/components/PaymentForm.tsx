@@ -107,6 +107,7 @@ function PaymentForm({
             className="w-full bg-blue-600 text-white p-2 rounded-lg"
             onClick={() => {
                 localStorage.setItem("selectedPaymentMethod","Online");
+                localStorage.setItem("checkoutMode","cart")
                 router.push("/order/confirmation")
             }}
           >

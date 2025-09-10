@@ -12,41 +12,27 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/stateful-button";
 import { openRazorpayCheckout } from "@/app/utils/paymentUtils";
 
-interface CartItem {
-  productId: string;
-  title: string;
-  price: number;
-  quantity: number;
-  image: string;
-}
-
 export default function OrderConfirmation() {
   const router = useRouter();
+  const { fetchOrders } = useOrders();
+  const { cart, setCart, fetchCart, buyNowItems, setBuyNowItems } = useCart();
+
   const userId =
     typeof window !== "undefined" ? localStorage.getItem("userId") : null;
 
   const [orderTotal, setOrderTotal] = useState<string>("0");
-  const [loading, setLoading] = useState<boolean>(true);
+  const [loading, setLoading] = useState(true);
 
   const [username, setUsername] = useState<string | null>(null);
   const [email, setEmail] = useState<string | null>(null);
-  const [selectedAddress, setSelectedAddress] = useState<{
-    address: string;
-    city: string;
-    country: string;
-  } | null>(null);
+  const [selectedAddress, setSelectedAddress] = useState<any>(null);
   const [paymentMethod, setPaymentMethod] = useState<string | null>(null);
-
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const { fetchOrders } = useOrders();
-  const { cart, setCart, fetchCart } = useCart();
-
   const paymentStatus = localStorage.getItem("paymentStatus");
+  const checkoutMode = localStorage.getItem("checkoutMode"); // "cart" | "buyNow"
 
-  const [buyNowItems, setBuyNowItems] = useState<CartItem[] | null>(null);
-
-  // ✅ Load user info, address, payment
+  // ✅ Load user, address, payment
   useEffect(() => {
     if (typeof window === "undefined") return;
 
@@ -54,101 +40,87 @@ export default function OrderConfirmation() {
     setEmail(localStorage.getItem("email"));
 
     const storedAddr = localStorage.getItem("selectedAddress");
-    if (storedAddr) {
-      try {
-        setSelectedAddress(JSON.parse(storedAddr));
-      } catch {
-        setSelectedAddress(null);
-      }
-    }
+    if (storedAddr) setSelectedAddress(JSON.parse(storedAddr));
 
     const rawPayment = localStorage.getItem("selectedPaymentMethod");
     if (rawPayment) {
       try {
         const parsed = JSON.parse(rawPayment);
-        const val = typeof parsed === "string" ? parsed : rawPayment;
-        if (val === "cod" || val === "Cash on Delivery")
-          setPaymentMethod("Cash on Delivery");
-        else if (val === "card") setPaymentMethod("Credit/Debit Card");
-        else if (val === "Online") setPaymentMethod("Online");
+        setPaymentMethod(typeof parsed === "string" ? parsed : rawPayment);
       } catch {
         setPaymentMethod(rawPayment);
       }
     }
   }, []);
 
-  // ✅ Load cart or buyNow order
-  const loadCart = useCallback(async () => {
-    const checkoutMode = localStorage.getItem("checkoutMode");
-
+  // ✅ Load items based on checkoutMode
+  const loadItems = useCallback(async () => {
     if (checkoutMode === "buyNow") {
-      const buyNowOrder = localStorage.getItem("order");
-      if (buyNowOrder) {
-        try {
-          const parsed = JSON.parse(buyNowOrder);
-          const item: CartItem = {
-            productId: parsed.productId,
-            title: parsed.title,
-            price: Number(parsed.discountPrice ?? parsed.price),
-            quantity: parsed.quantity,
-            image: parsed.image,
-          };
+      // Use context first
+      if (buyNowItems.length > 0) {
+        setOrderTotal(
+          buyNowItems
+            .reduce((sum, item) => sum + item.price * item.quantity, 0)
+            .toString()
+        );
+        setLoading(false);
+        return;
+      }
 
-          setBuyNowItems([item]);
-          setOrderTotal((item.price * item.quantity).toString());
-          setLoading(false);
-          return;
+      // Fallback to localStorage
+      const storedOrder = localStorage.getItem("order");
+      if (storedOrder) {
+        try {
+          const parsed = JSON.parse(storedOrder);
+          setBuyNowItems([parsed]);
+          setOrderTotal((parsed.price * parsed.quantity).toString());
         } catch (err) {
-          console.error("Error parsing buy now order:", err);
+          console.error("Error parsing buyNow order:", err);
         }
       }
-    }
-
-    // 🛒 Normal Cart flow
-    if (!userId) {
       setLoading(false);
       return;
     }
 
-    try {
-      await fetchCart(userId);
-    } catch (err) {
-      console.error("Error fetching cart:", err);
-      setCart([]);
-    } finally {
-      setLoading(false);
+    // 🛒 Cart flow
+    if (userId) {
+      try {
+        await fetchCart(userId);
+      } catch (err) {
+        console.error("Error fetching cart:", err);
+        setCart([]);
+      }
     }
-  }, [userId, fetchCart, setCart]);
+    setLoading(false);
+  }, [checkoutMode, userId, fetchCart, setCart, buyNowItems, setBuyNowItems]);
 
   useEffect(() => {
-    loadCart();
-  }, [loadCart]);
+    loadItems();
+  }, [loadItems]);
 
   // ✅ Keep totals updated
   useEffect(() => {
-    if (buyNowItems) {
+    if (checkoutMode === "buyNow" && buyNowItems.length > 0) {
       const total = buyNowItems.reduce(
         (sum, item) => sum + item.price * item.quantity,
         0
       );
       setOrderTotal(total.toString());
-    } else if (cart && Array.isArray(cart)) {
+    } else if (checkoutMode !== "buyNow" && cart.length > 0) {
       const total = cart.reduce(
         (sum, item) => sum + item.price * item.quantity,
         0
       );
       setOrderTotal(total.toString());
     }
-  }, [cart, buyNowItems]);
+  }, [checkoutMode, buyNowItems, cart]);
 
   // ✅ Place order
   const handleOrderPlace = async () => {
-    const checkoutMode = localStorage.getItem("checkoutMode");
-
     try {
       let orderPayload;
 
-      if (checkoutMode === "buyNow" && buyNowItems) {
+      if (checkoutMode === "buyNow" && buyNowItems.length > 0) {
         orderPayload = {
           userId,
           items: buyNowItems,
@@ -173,27 +145,22 @@ export default function OrderConfirmation() {
         };
       }
 
-      // 🔥 ONLINE PAYMENT FLOW
+      // 🔥 Online Payment Flow
       if (paymentMethod === "Online") {
-        const total = Number(localStorage.getItem("total"));
+        const total = Number(orderTotal);
 
         openRazorpayCheckout(
           total,
           async () => {
             toast.success("Order Placed!");
 
-            const orderRes = await fetch("http://localhost:5000/api/orders", {
+            await fetch("http://localhost:5000/api/orders", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                ...orderPayload,
-                paymentStatus: "Paid",
-              }),
+              body: JSON.stringify({ ...orderPayload, paymentStatus: "Paid" }),
             });
 
-            if (!orderRes.ok) throw new Error("Failed to save order");
-
-            if (checkoutMode !== "buyNow") {
+            if (checkoutMode !== "buyNow" && userId) {
               await fetch(`http://localhost:5000/api/cart/${userId}`, {
                 method: "DELETE",
               });
@@ -202,31 +169,27 @@ export default function OrderConfirmation() {
             }
 
             localStorage.removeItem("checkoutMode");
+            localStorage.removeItem("order");
             setOrderTotal("0");
             setIsModalOpen(true);
             fetchOrders();
             router.push("/");
           },
-          () => {
-            toast.error("❌ Payment failed or verification failed!");
-          }
+          () => toast.error("❌ Payment failed!")
         );
-
         return;
       }
 
-      // 🔥 COD OR OTHER METHOD
-      const orderRes = await fetch("http://localhost:5000/api/orders", {
+      // 🔥 COD or other
+      await fetch("http://localhost:5000/api/orders", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(orderPayload),
       });
 
-      if (!orderRes.ok) throw new Error("Failed to place order");
-
       if (checkoutMode === "buyNow") {
         localStorage.removeItem("order");
-      } else {
+      } else if (userId) {
         await fetch(`http://localhost:5000/api/cart/${userId}`, {
           method: "DELETE",
         });
@@ -246,10 +209,12 @@ export default function OrderConfirmation() {
 
   if (loading)
     return (
-      <div className="h-screen w-[95%] mx-auto rounded-3xl bg-white my-4 items-center justify-center flex">
+      <div className="h-screen w-[95%] mx-auto rounded-3xl bg-white my-4 flex items-center justify-center">
         <Loader />
       </div>
     );
+
+  const itemsToShow = checkoutMode === "buyNow" ? buyNowItems : cart;
 
   return (
     <div className="min-h-screen bg-gray-100 py-8 px-4 sm:px-6 md:px-12 lg:px-20 w-[95%] mx-auto my-4 rounded-2xl">
@@ -262,7 +227,7 @@ export default function OrderConfirmation() {
       />
 
       {/* Header */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center md:pb-6 pb-4 md:mb-6 mb-4 gap-4">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center pb-6 gap-4">
         <h1 className="text-xl sm:text-2xl font-bold text-gray-800">
           Order Confirmation
         </h1>
@@ -275,91 +240,60 @@ export default function OrderConfirmation() {
           </p>
           <Button
             onClick={handleOrderPlace}
-            className="bg-green-500 hover:bg-green-600 text-white px-4 sm:px-6 py-2 rounded-lg font-semibold shadow transition-all cursor-pointer hover:scale-105"
+            className="bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-lg font-semibold shadow transition-all cursor-pointer hover:scale-105"
           >
             {paymentMethod === "Online" ? "Pay and Place Order" : "Place Order"}
           </Button>
         </div>
       </div>
 
-      {/* User, Address, Payment Info */}
-      <div className="w-full mx-auto bg-white p-4 mb-6 rounded-xl">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Your Info */}
-          <div className="rounded-xl p-4 border border-gray-200">
-            <div className="flex justify-between items-center border-b border-dashed border-gray-300 pb-2">
-              <h2 className="text-lg font-semibold">Your Information</h2>
-            </div>
-            <p className="mt-2 text-gray-600">{username}</p>
-            <p className="text-gray-600">{email}</p>
-          </div>
-
-          {/* Address */}
-          <div className="rounded-xl p-4 border border-gray-200">
-            <div className="flex justify-between items-center border-b border-dashed border-gray-300 pb-2">
-              <h2 className="text-lg font-semibold">Shipping Address</h2>
-              <Link href="/cart?step=2">
-                <button className="text-blue-500 hover:underline text-sm cursor-pointer">
-                  Edit
-                </button>
-              </Link>
-            </div>
-            {selectedAddress ? (
-              <>
-                <p className="mt-2 text-gray-600">{selectedAddress.address}</p>
-                <p className="text-gray-600">
-                  {selectedAddress.city}, {selectedAddress.country}
-                </p>
-              </>
-            ) : (
-              <p className="mt-2 text-gray-500">No address selected</p>
-            )}
-          </div>
-
-          {/* Payment */}
-          <div className="rounded-xl p-4 border border-gray-200">
-            <div className="flex justify-between items-center border-b border-dashed border-gray-300 pb-2">
-              <h2 className="text-lg font-semibold">Payment</h2>
-            </div>
-            <p className="mt-2 text-gray-600">
-              Selected: {paymentMethod ?? "Not Selected"}
-            </p>
-            <p className="mt-2 text-gray-600">
-              Status: {paymentStatus ?? "Pending"}
-            </p>
-          </div>
-
-          {/* Billing */}
-          <div className="rounded-xl p-4 border border-gray-200">
-            <div className="flex justify-between items-center border-b border-dashed border-gray-300 pb-2">
-              <h2 className="text-lg font-semibold">Billing Address</h2>
-            </div>
-            <p className="mt-2 text-gray-600">{username}</p>
-            <p className="text-gray-600">
-              {selectedAddress?.address} <br /> {selectedAddress?.city},{" "}
-              {selectedAddress?.country}
-            </p>
-            <p className="text-gray-600">(315) 396-7461</p>
-          </div>
+      {/* User, Address, Payment */}
+      <div className="w-full mx-auto bg-white p-4 mb-6 rounded-xl grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="p-4 border rounded-xl">
+          <h2 className="text-lg font-semibold border-b pb-2">Your Info</h2>
+          <p className="mt-2 text-gray-600">{username}</p>
+          <p className="text-gray-600">{email}</p>
+        </div>
+        <div className="p-4 border rounded-xl">
+          <h2 className="text-lg font-semibold border-b pb-2">Shipping Address</h2>
+          {selectedAddress ? (
+            <>
+              <p className="mt-2 text-gray-600">{selectedAddress.address}</p>
+              <p className="text-gray-600">
+                {selectedAddress.city}, {selectedAddress.country}
+              </p>
+            </>
+          ) : (
+            <p className="mt-2 text-gray-500">No address selected</p>
+          )}
+        </div>
+        <div className="p-4 border rounded-xl">
+          <h2 className="text-lg font-semibold border-b pb-2">Payment</h2>
+          <p className="mt-2 text-gray-600">
+            Selected: {paymentMethod ?? "Not Selected"}
+          </p>
+          <p className="text-gray-600">
+            Status: {paymentStatus ?? "Pending"}
+          </p>
         </div>
       </div>
 
-      {/* Items Table */}
+      {/* Items */}
       <div className="overflow-x-auto bg-white rounded-xl p-4">
-        {(buyNowItems ?? cart).length === 0 ? (
-          <p className="text-gray-500">Your cart is empty.</p>
+        {itemsToShow.length === 0 ? (
+          <p className="text-gray-500">No items found.</p>
         ) : (
           <table className="w-full min-w-[600px] text-left border-collapse">
             <thead>
               <tr className="text-gray-600 text-sm border-b">
                 <th className="pb-3">Item</th>
-                <th className="pb-3">Quantity</th>
+                <th className="pb-3">Qty</th>
                 <th className="pb-3">Price</th>
                 <th className="pb-3">Subtotal</th>
               </tr>
             </thead>
             <tbody>
-              {(buyNowItems ?? cart).map((item) => (
+              {itemsToShow.map((item) => (
                 <tr key={item.productId} className="border-b text-gray-800">
                   <td className="py-4 flex items-center gap-4">
                     <Image

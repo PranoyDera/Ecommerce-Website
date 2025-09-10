@@ -18,7 +18,7 @@ function ProductCard({ product }: { product: ProductType }) {
   const [addresses, setAddresses] = useState<any[]>([]);
   const [selectedAddress, setSelectedAddress] = useState<string | null>(null);
   const [paymentMethod, setPaymentMethod] = useState<string | null>(null);
-  const { addToCart } = useCart();
+  const { addToCart,addBuyNow } = useCart();
 //  const { addToCart } = useCartStore();
   const router = useRouter();
 
@@ -52,39 +52,53 @@ function ProductCard({ product }: { product: ProductType }) {
   }
 };
 
-
+  const discountPrice = (
+    product.price -
+    ((product.price * product.discountPercentage) / 100) + 10
+  ).toFixed(2);
   const handleBuyNow = () => {
     setShowModal(true);
   };
 
-const handleConfirmOrder = (address: any, paymentMethod: string) => {
+  const handleConfirmOrder = (address: any, paymentMethod: string) => {
   if (!address) {
-    toast("Please select an address");
+    toast.error("Please select an address");
     return;
   }
   if (!paymentMethod) {
-    toast("Please select a payment method");
+    toast.error("Please select a payment method");
     return;
   }
 
   const orderData = {
     productId: product.id,
     title: product.title,
-    price: product.price,
+    price: Number(discountPrice), // ✅ use discounted price if available
     quantity,
     image: product.images[0],
-    address,          
-    paymentMethod,  
+    address,
+    paymentMethod,
   };
 
+  // ✅ store in context (Buy Now item)
+  addBuyNow(orderData);
+
+  // (optional) still keep localStorage for fallback
   localStorage.setItem("order", JSON.stringify(orderData));
   localStorage.setItem("checkoutMode", "buyNow");
-  localStorage.setItem("subtotal", JSON.stringify(product.price * quantity));
-  localStorage.setItem("total", JSON.stringify(product.price * quantity));
-  localStorage.setItem("selectedAddress",JSON.stringify(address));
-  localStorage.setItem("selectedPaymentMethod",JSON.stringify(paymentMethod));
-  localStorage.setItem("paymentStatus","Pending");
-  router.push("/order/confirmation");
+  localStorage.setItem("subtotal", JSON.stringify((Number(discountPrice) * quantity).toFixed(2)));
+  localStorage.setItem("total", JSON.stringify((Number(discountPrice) * quantity).toFixed(2)));
+  localStorage.setItem("selectedAddress", JSON.stringify(address));
+  localStorage.setItem("selectedPaymentMethod", JSON.stringify(paymentMethod));
+
+  if (paymentMethod === "Cash on Delivery") {
+    localStorage.setItem("paymentStatus", "Pending");
+    router.push("/order/confirmation");
+  } else {
+    localStorage.setItem("selectedPaymentMethod", "Online");
+    localStorage.setItem("paymentStatus", "Pending");
+    router.push("/order/confirmation");
+  }
 };
 
 

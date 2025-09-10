@@ -1,4 +1,2 @@
 Features to be left to add:
-        4.All products UI should be improved
-        5.Have to do responsive
-        6.Terms page UI should be improved.
+        1.Order Confirmation bug should be resolved.

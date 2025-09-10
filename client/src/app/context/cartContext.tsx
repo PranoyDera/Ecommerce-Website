@@ -11,6 +11,16 @@ type CartItem = {
   discountPercentage?: number;
 };
 
+// 👇 Separate type for Buy Now products
+type BuyNowItem = {
+  productId: string;
+  title: string;
+  price: number;
+  quantity: number;
+  image: string;
+  discountPercentage?: number;
+};
+
 type CartContextType = {
   cart: CartItem[];
   setCart: React.Dispatch<React.SetStateAction<CartItem[]>>;
@@ -18,13 +28,21 @@ type CartContextType = {
   clearCart: (userId: string) => Promise<void>;
   addToCart: (userId: string, product: CartItem) => Promise<void>;
   removeFromCart: (userId: string, productId: string) => Promise<void>;
+
+  // 👇 BuyNow state and actions
+  buyNowItems: BuyNowItem[];
+  setBuyNowItems: React.Dispatch<React.SetStateAction<BuyNowItem[]>>;
+  addBuyNow: (product: BuyNowItem) => void;
+  clearBuyNow: () => void;
 };
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export const CartProvider = ({ children }: { children: React.ReactNode }) => {
   const [cart, setCart] = useState<CartItem[]>([]);
+  const [buyNowItems, setBuyNowItems] = useState<BuyNowItem[]>([]); // ✅ separate state
 
+  // ---------------- CART ----------------
   const fetchCart = React.useCallback(async (userId: string) => {
     try {
       if (!userId) return;
@@ -41,7 +59,6 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
     }
   }, []);
 
- 
   const addToCart = async (userId: string, product: CartItem) => {
     try {
       const res = await fetch(`http://localhost:5000/api/cart/${userId}`, {
@@ -53,28 +70,27 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
       if (!res.ok) throw new Error("Failed to add to cart");
 
       const data = await res.json();
-      setCart(data.items || []); // ✅ update context immediately
+      setCart(data.items || []);
     } catch (err) {
       console.error("Error adding to cart:", err);
     }
   };
 
-
   const removeFromCart = async (userId: string, productId: string) => {
     try {
-      const res = await fetch(`http://localhost:5000/api/cart/${userId}/${productId}`, {
-        method: "DELETE",
-      });
+      const res = await fetch(
+        `http://localhost:5000/api/cart/${userId}/${productId}`,
+        { method: "DELETE" }
+      );
 
       if (!res.ok) throw new Error("Failed to remove from cart");
 
       const data = await res.json();
-      setCart(data.items || []); // ✅ update context immediately
+      setCart(data.items || []);
     } catch (err) {
       console.error("Error removing from cart:", err);
     }
   };
-
 
   const clearCart = async (userId: string) => {
     try {
@@ -84,23 +100,52 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
         method: "DELETE",
       });
 
-      setCart([]); 
+      setCart([]);
     } catch (err) {
       console.error("Error clearing cart:", err);
     }
   };
 
-  
+  // ---------------- BUY NOW ----------------
+  const addBuyNow = (product: BuyNowItem) => {
+    setBuyNowItems([product]); // ✅ Only one item at a time
+    localStorage.setItem("buyNow", JSON.stringify(product));
+  };
+
+  const clearBuyNow = () => {
+    setBuyNowItems([]);
+    localStorage.removeItem("buyNow");
+  };
+
+  // Load from localStorage (if needed)
   useEffect(() => {
     const userId = localStorage.getItem("userId");
-    if (userId) {
-      fetchCart(userId);
+    if (userId) fetchCart(userId);
+
+    const savedBuyNow = localStorage.getItem("buyNow");
+    if (savedBuyNow) {
+      try {
+        setBuyNowItems([JSON.parse(savedBuyNow)]);
+      } catch {
+        setBuyNowItems([]);
+      }
     }
   }, [fetchCart]);
 
   return (
     <CartContext.Provider
-      value={{ cart, setCart, fetchCart, clearCart, addToCart, removeFromCart }}
+      value={{
+        cart,
+        setCart,
+        fetchCart,
+        clearCart,
+        addToCart,
+        removeFromCart,
+        buyNowItems,
+        setBuyNowItems,
+        addBuyNow,
+        clearBuyNow,
+      }}
     >
       {children}
     </CartContext.Provider>

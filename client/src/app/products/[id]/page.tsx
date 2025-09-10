@@ -4,12 +4,11 @@ import Image from "next/image";
 import React, { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { ShoppingCart } from "lucide-react";
-import useCartStore from "@/app/Stores/cartStore";
 import { toast } from "sonner";
 import Loader from "../../../components/Loader2";
 import { useCart } from "@/app/context/cartContext";
 import BuyNowModal from "@/components/BuynowModal";
-import { openRazorpayCheckout } from "@/app/utils/paymentUtils";
+
 
 const ProductPage = () => {
   const params = useParams();
@@ -17,7 +16,7 @@ const ProductPage = () => {
   const [product, setProduct] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [quantity, setQuantity] = useState(1);
-  const { addToCart } = useCart();
+  const { addToCart,addBuyNow, clearBuyNow } = useCart();
   const [showModal, setShowModal] = useState(false);
 
   // ✅ Fetch single product from DummyJSON
@@ -47,7 +46,7 @@ const ProductPage = () => {
   // ✅ Discounted Price (DummyJSON has `discountPercentage`)
   const discountPrice = (
     product.price -
-    (product.price * product.discountPercentage) / 100
+    ((product.price * product.discountPercentage) / 100) + 10
   ).toFixed(2);
 
   // ✅ Handle Add to Cart
@@ -81,44 +80,45 @@ const ProductPage = () => {
   };
 
   const handleConfirmOrder = (address: any, paymentMethod: string) => {
-    if (!address) {
-      toast.error("Please select an address");
-      return;
-    }
-    if (!paymentMethod) {
-      toast.error("Please select a payment method");
-      return;
-    }
+  if (!address) {
+    toast.error("Please select an address");
+    return;
+  }
+  if (!paymentMethod) {
+    toast.error("Please select a payment method");
+    return;
+  }
 
-    const orderData = {
-      productId: product.id,
-      title: product.title,
-      price: product.price,
-      quantity,
-      image: product.images[0],
-      address,
-      paymentMethod,
-    };
-
-    localStorage.setItem("order", JSON.stringify(orderData));
-    localStorage.setItem("checkoutMode", "buyNow");
-    localStorage.setItem("subtotal", JSON.stringify(product.price * quantity));
-    localStorage.setItem("total", JSON.stringify(product.price * quantity));
-    localStorage.setItem("selectedAddress", JSON.stringify(address));
-    localStorage.setItem(
-      "selectedPaymentMethod",
-      JSON.stringify(paymentMethod)
-    );
-
-    if (paymentMethod === "Cash on Delivery") {
-      localStorage.setItem("paymentStatus", "Pending");
-      router.push("/order/confirmation");
-    } else {
-       localStorage.setItem("selectedPaymentMethod", "Online");
-       localStorage.setItem("paymentStatus", "Pending");
-       router.push("/order/confirmation");
-    }
+  const orderData = {
+    productId: product.id,
+    title: product.title,
+    price: Number(discountPrice), // ✅ use discounted price if available
+    quantity,
+    image: product.images[0],
+    address,
+    paymentMethod,
   };
+
+  // ✅ store in context (Buy Now item)
+  addBuyNow(orderData);
+
+  // (optional) still keep localStorage for fallback
+  localStorage.setItem("order", JSON.stringify(orderData));
+  localStorage.setItem("checkoutMode", "buyNow");
+  localStorage.setItem("subtotal", JSON.stringify((Number(discountPrice) * quantity).toFixed(2)));
+  localStorage.setItem("total", JSON.stringify((Number(discountPrice) * quantity).toFixed(2)));
+  localStorage.setItem("selectedAddress", JSON.stringify(address));
+  localStorage.setItem("selectedPaymentMethod", JSON.stringify(paymentMethod));
+
+  if (paymentMethod === "Cash on Delivery") {
+    localStorage.setItem("paymentStatus", "Pending");
+    router.push("/order/confirmation");
+  } else {
+    localStorage.setItem("selectedPaymentMethod", "Online");
+    localStorage.setItem("paymentStatus", "Pending");
+    router.push("/order/confirmation");
+  }
+};
 
   return (
     <div className="flex flex-col gap-8 lg:flex-row md:gap-12 my-12 w-[85%] mx-auto bg-gray-200 p-4 rounded-3xl">
@@ -154,7 +154,7 @@ const ProductPage = () => {
         {/* Price & Discount */}
         <div className="flex items-center gap-4">
           <h2 className="text-2xl font-semibold text-black">
-            ${(Number(discountPrice) * quantity).toFixed(2)}
+            ${(Number((discountPrice) * quantity)-10).toFixed(2)}
           </h2>
           <p className="line-through text-gray-500">
             ${(product.price * quantity).toFixed(2)}

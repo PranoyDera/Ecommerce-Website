@@ -77,7 +77,6 @@ export default function CartPage() {
 
   // 🔹 Fetch addresses
   useEffect(() => {
-    console.log("Useeffect Hits");
     const fetchAddresses = async () => {
       const token = sessionStorage.getItem("accessToken");
       try {
@@ -87,7 +86,7 @@ export default function CartPage() {
         const data = await res.json();
         setAddresses(data || []);
       } catch (err) {
-        console.error("Error fetching addresses:", err);
+        toast.error("Error fetching addresses:", err);
       } finally {
         setLoadingAddresses(false);
       }

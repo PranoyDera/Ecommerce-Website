@@ -87,7 +87,7 @@ export default function BuyNowModal({
         {/* Payment Methods */}
         <h2 className="text-lg font-semibold mb-2">Select Payment Method</h2>
         <div className="flex gap-3 mb-6">
-          {["Cash on Delivery", "Online",].map((method) => (
+          {["Cash on Delivery", "Online"].map((method) => (
             <button
               key={method}
               onClick={() => setPaymentMethod(method)}
@@ -102,10 +102,14 @@ export default function BuyNowModal({
           ))}
         </div>
 
+        <h2 className="text-lg font-semibold mb-4">
+          Shipping Fee: +$10
+        </h2>
+
         {/* Confirm Button */}
         <button
           onClick={handleConfirm}
-          className="w-full bg-black text-white py-2 rounded-lg font-medium hover:bg-gray-800 transition"
+          className="w-full bg-black text-white py-2 rounded-lg font-medium hover:bg-gray-800 transition cursor-pointer"
         >
           Confirm Order
         </button>

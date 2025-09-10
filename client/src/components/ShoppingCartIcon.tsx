@@ -8,8 +8,6 @@ import { useCart } from "../app/context/cartContext";
 function CartIcon() {
   const { cart } = useCart();
   const totalItems = cart.length
-    console.log("totalItems:",totalItems)
-    console.log(cart)
   return (
     <div className="relative">
       <Link href="/cart" className="relative">
