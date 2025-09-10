@@ -3,58 +3,51 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import AuthForm from "../../components/AuthForm";
 import { useState } from "react";
+import { apiGet, apiPost } from "../utils/api";
 
 export default function LoginPage() {
   const router = useRouter();
   const [addresses, setAddresses] = useState<any[]>([]);
 
-  const handleLogin = async (form: Record<string, string>) => {
-    const res = await fetch("http://localhost:5000/api/auth/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(form),
-    });
+ const handleLogin = async (form: Record<string, string>) => {
+  try {
+    const data = await apiPost<{
+      accessToken: string;
+      refreshToken: string;
+      id: string;
+      message: string;
+    }>("/api/auth/login", form);
 
-    const data = await res.json();
+    
+    if (data.accessToken) sessionStorage.setItem("accessToken", data.accessToken);
+    if (data.refreshToken) sessionStorage.setItem("refreshToken", data.refreshToken);
+    if (data.id) sessionStorage.setItem("userId", data.id);
 
-    if (res.ok) {
-      if (data.accessToken) sessionStorage.setItem("accessToken", data.accessToken);
-      if (data.refreshToken) sessionStorage.setItem("refreshToken", data.refreshToken);
-      if (data.id) sessionStorage.setItem("userId", data.id);
+    
+    const decoded = JSON.parse(atob(data.accessToken.split(".")[1])) as {
+      username: string;
+      email: string;
+      id: string;
+    };
 
-      const decoded = JSON.parse(atob(data.accessToken.split(".")[1]));
-      console.log(decoded.username, decoded.email, decoded.id);
+    localStorage.setItem("username", decoded.username);
+    localStorage.setItem("email", decoded.email);
+    localStorage.setItem("userId", decoded.id);
 
-      localStorage.setItem("username", decoded.username);
-      localStorage.setItem("email", decoded.email);
-      localStorage.setItem("userId", decoded.id);
+  
+    const token = sessionStorage.getItem("accessToken") || "";
+    const addresses = await apiGet<any[]>("/api/users/address", token);
 
-      // ✅ Fetch addresses after login
-      const fetchAddresses = async () => {
-        const token = sessionStorage.getItem("accessToken");
-        try {
-          const res = await fetch(`http://localhost:5000/api/users/address`, {
-            headers: { Authorization: `Bearer ${token}` },
-          });
-          const data = await res.json();
+    setAddresses(addresses || []);
+    localStorage.setItem("addresses", JSON.stringify(addresses || []));
 
-          setAddresses(data || []);
-
-          // ✅ Save in localStorage
-          localStorage.setItem("addresses", JSON.stringify(data || []));
-        } catch (err) {
-          console.error("Error fetching addresses:", err);
-        }
-      };
-
-      await fetchAddresses();
-
-      toast(data.message);
-      router.replace("/");
-    } else {
-      toast(data.message);
-    }
-  };
+    toast(data.message);
+    router.replace("/");
+  } catch (err: any) {
+    console.error("Login failed:", err);
+    toast(err.message || "Login failed");
+  }
+};
 
   return (
     <AuthForm

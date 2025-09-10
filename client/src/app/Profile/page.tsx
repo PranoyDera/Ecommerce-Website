@@ -17,7 +17,9 @@ import ConfirmModal from "../../components/ConfirmModal";
 
 export default function ProfilePage() {
   const router = useRouter();
-  const username = localStorage.getItem("username");
+ const username =
+  typeof window !== "undefined" ? localStorage.getItem("username") : null;
+
   const email = localStorage.getItem("email");
   const [user, setUser] = useState<any>(null);
 

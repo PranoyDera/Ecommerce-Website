@@ -1,2 +1,1 @@
-Features to be left to add:
-        1.Order Confirmation bug should be resolved.
+1.Login,Signup,UserDetail fetch api is migrated.

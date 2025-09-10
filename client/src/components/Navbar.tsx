@@ -7,6 +7,7 @@ import { SearchBar } from './SearchBar'
 import { Home } from 'lucide-react'
 import ShoppingCartIcon from './ShoppingCartIcon'
 import OrderIcon from './OrderIcon'
+import { apiGet } from '@/app/utils/api'
 
 function Navbar() {
   const [user, setUser] = useState<any>(null)
@@ -14,12 +15,8 @@ function Navbar() {
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const res = await fetch("http://localhost:5000/api/auth/me", {
-          credentials: "include",
-          headers: {
-            Authorization: `Bearer ${sessionStorage.getItem("accessToken")}`,
-          },
-        })
+        const token = sessionStorage.getItem("accessToken");
+        const res = await apiGet("/api/auth/me",token)
         if (res.ok) {
           const data = await res.json()
           setUser(data)

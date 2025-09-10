@@ -2,27 +2,26 @@
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import AuthForm from "../../components/AuthForm";
+import { apiPost } from "../utils/api";
 
 export default function SignupPage() {
   const router = useRouter();
 
-  const handleSignup = async (form: Record<string, string>) => {
-    const res = await fetch("http://localhost:5000/api/auth/register", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(form),
-    });
+const handleSignup = async (form: Record<string, string>) => {
+  try {
+    const data = await apiPost<{ message: string }>("/api/auth/register", form);
 
-    const data = await res.json();
-    if (res.ok) {
-      toast.success("Signup Successful. Please verify OTP.");
-      // Redirect to OTP page with email
-      router.push(`/verify-otp?email=${encodeURIComponent(form.email)}`);
-    } else {
-      toast.error(data.message || "Error Occurred In Signup!");
-    }
-  };
+    // Success toast
+    toast.success(data.message || "Signup Successful. Please verify OTP.");
 
+    // Redirect to OTP page with email
+    router.push(`/verify-otp?email=${encodeURIComponent(form.email)}`);
+  } catch (err: any) {
+    // Show backend error message in toast
+    toast.error(err.message || "Error occurred in Signup!");
+    console.error("Signup failed:", err);
+  }
+};
   return (
     <AuthForm
       title="Signup"
