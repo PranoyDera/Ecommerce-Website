@@ -1,1 +1,1 @@
-1.Login,Signup,UserDetail fetch api is migrated.
+1.Login,Signup,UserDetail,Verify fetch api is migrated.

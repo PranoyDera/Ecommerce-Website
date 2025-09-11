@@ -1,5 +1,6 @@
 "use client";
 
+import { apiPost } from "@/app/utils/api";
 import React, { useState } from "react";
 import { toast } from "sonner";
 
@@ -28,16 +29,9 @@ const ContactPage = () => {
     };
 
     try {
-      const res = await fetch("http://localhost:5000/api/feedback", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
-      });
-
-      const data = await res.json();
-      if (res.ok) {
-        toast("✅ Feedback submitted!");
-        setFirstName("");
+      const res = await apiPost("/api/feedback",formData);
+      toast.success("Feedback Submitted!");
+       setFirstName("");
         setLastName("");
         setCountry("");
         setPhone("");
@@ -45,12 +39,9 @@ const ContactPage = () => {
         setInquiryType("General");
         setMessage("");
         setOffersOptIn(false);
-      } else {
-        toast(data.message);
-      }
     } catch (err) {
       console.error("Submit error:", err);
-      toast("❌ Failed to submit feedback");
+      toast.error("Failed to submit feedback");
     }
   };
 

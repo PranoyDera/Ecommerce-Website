@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { useRouter } from "next/navigation";
+import { apiPut } from "@/app/utils/api";
 
 
 export function ChangePasswordForm() {
@@ -17,44 +18,40 @@ export function ChangePasswordForm() {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
 
-    if (newPassword !== confirmPassword) {
-      toast.error("Passwords do not match!");
-      return;
-    }
+  if (newPassword !== confirmPassword) {
+    toast.error("Passwords do not match!");
+    return;
+  }
 
-    try {
-      setLoading(true);
-      const res = await fetch("http://localhost:5000/api/auth/update-password", {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${sessionStorage.getItem("accessToken")}`,
-        },
-        body: JSON.stringify({
-          currentPassword,
-          newPassword,
-        }),
-      });
+  try {
+    setLoading(true);
 
-      const data = await res.json();
-      if (res.ok) {
-        toast.success("Password updated successfully!");
-        setCurrentPassword("");
-        setNewPassword("");
-        setConfirmPassword("");
-      } else {
-        toast.error(data.message || "Failed to update password");
-      }
-    } catch (err) {
-      console.error("Error updating password:", err);
-      toast.error("Something went wrong!");
-    } finally {
-      setLoading(false);
-    }
-  };
+    const token = sessionStorage.getItem("accessToken") || "";
+
+    // ✅ Use apiPut instead of fetch
+    await apiPut(
+      "/api/auth/update-password",
+      {
+        currentPassword,
+        newPassword,
+      },
+      token
+    );
+
+    toast.success("Password updated successfully!");
+    setCurrentPassword("");
+    setNewPassword("");
+    setConfirmPassword("");
+  } catch (err: any) {
+    console.error("Error updating password:", err);
+    toast.error(err.message || "Something went wrong!");
+  } finally {
+    setLoading(false);
+  }
+};
  
   return (
     <div className="shadow-input md:w-full w-80 max-w-md rounded-2xl bg-white p-1 md:rounded-2xl md:p-2 dark:bg-black">

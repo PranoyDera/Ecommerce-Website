@@ -6,6 +6,8 @@ import React, { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import ConfirmModal from "@/components/ConfirmModal";
+import { apiDelete, apiGet } from "@/app/utils/api";
+import Loader from "@/components/Loader2";
 
 function EditAddress() {
   const [addresses, setAddresses] = useState<any[]>([]);
@@ -18,49 +20,53 @@ function EditAddress() {
 
   // Fetch user addresses
   const fetchAddresses = async () => {
-    const token = sessionStorage.getItem("accessToken");
-    if (!token) return;
-    try {
-      const res = await fetch("http://localhost:5000/api/users/address", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const data = await res.json();
-      if (Array.isArray(data)) setAddresses(data);
-      else if (data.addresses) setAddresses(data.addresses);
-      else setAddresses([]);
-    } catch (error) {
-      console.error("Error fetching addresses:", error);
-    }
-  };
+  const token = sessionStorage.getItem("accessToken");
+
+  try {
+    setLoading(true);
+    const data = await apiGet<any[]>("/api/users/address", token);
+    
+    setAddresses(data || []);
+    setLoading(false);
+    localStorage.setItem("addresses", JSON.stringify(data || []));
+  } catch (err) {
+    console.error("Error fetching addresses:", err);
+    setAddresses([]); // fallback to empty list
+  }
+};
 
   useEffect(() => {
     fetchAddresses();
   }, []);
 
   const handleDelete = async (addressId: string) => {
-    const token = sessionStorage.getItem("accessToken");
-    if (!token) return;
+  const token = sessionStorage.getItem("accessToken");
+  if (!token) {
+    toast.error("User not logged in");
+    return;
+  }
 
-    try {
-      const res = await fetch(
-        `http://localhost:5000/api/users/address/${addressId}`,
-        {
-          method: "DELETE",
-          headers: { Authorization: `Bearer ${token}` },
-        }
-      );
-      const data = await res.json();
+  try {
+    const data = await apiDelete<{ addresses: any[] }>(
+      `/api/users/address/${addressId}`,
+      token
+    );
 
-      if (res.ok) {
-        setAddresses(data.addresses || []);
-        toast.success("Address deleted!");
-      } else {
-        console.error("Failed to delete address:", data.message);
-      }
-    } catch (error) {
-      console.error("Error deleting address:", error);
-    }
-  };
+    setAddresses(data.addresses || []);
+    toast.success("Address deleted!");
+  } catch (error: any) {
+    console.error("Error deleting address:", error);
+    toast.error(error.message || "Failed to delete address");
+  }
+};
+ const [loading, setLoading] = useState(true);
+    if (loading) {
+    return (
+      <div className="rounded-3xl h-screen mx-auto my-4 flex justify-center items-center">
+        <Loader />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen w-[95%] bg-[url('/userpage.jpg')] bg-cover bg-center flex flex-col p-6 mx-auto my-4 rounded-3xl">
@@ -98,11 +104,11 @@ function EditAddress() {
             }}
           />
         ) : addresses.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-16 text-gray-600">
+          <div className="flex items-center justify-center py-16 text-gray-600">
             <img
-              src="/empty-address.svg"
+              src="/maps-and-flags.png"
               alt="No addresses"
-              className="w-40 mb-4 opacity-80"
+              className="w-10 opacity-80"
             />
             <p className="text-lg">No addresses saved yet.</p>
           </div>

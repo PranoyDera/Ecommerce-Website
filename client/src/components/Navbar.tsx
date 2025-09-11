@@ -16,11 +16,9 @@ function Navbar() {
     const fetchUser = async () => {
       try {
         const token = sessionStorage.getItem("accessToken");
-        const res = await apiGet("/api/auth/me",token)
-        if (res.ok) {
-          const data = await res.json()
-          setUser(data)
-        }
+        const data = await apiGet("/api/auth/me",token)
+        setUser(data)
+    
       } catch (err) {
         console.error("Failed to fetch user:", err)
       }

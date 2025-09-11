@@ -16,6 +16,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/stateful-button";
+import { apiGet, apiPut } from "@/app/utils/api";
+
 
 export default function EditProfilePage() {
   const [formData, setFormData] = useState({
@@ -35,33 +37,24 @@ export default function EditProfilePage() {
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const res = await fetch("http://localhost:5000/api/auth/me", {
-          method: "GET",
-          credentials: "include",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${sessionStorage.getItem("accessToken")}`,
-          },
-        });
+        const token = sessionStorage.getItem("accessToken");
+        if (!token) return;
 
-        const data = await res.json();
-        if (res.ok) {
-          setFormData({
-            fullName: data.name || "",
-            gender: data.gender || "",
-            birthday: data.DateOfBirth
-              ? new Date(data.DateOfBirth).toISOString().split("T")[0]
-              : "",
-            phone: data.phone || "",
-            email: data.email || "",
-            username: data.username || "",
-            image: data.image || "",
-          });
-        } else {
-          console.error("Failed to fetch user:", data.message);
-        }
-      } catch (error) {
-        console.error("Error fetching user:", error);
+        const data = await apiGet<any>("/api/auth/me", token);
+
+        setFormData({
+          fullName: data.name || "",
+          gender: data.gender || "",
+          birthday: data.DateOfBirth
+            ? new Date(data.DateOfBirth).toISOString().split("T")[0]
+            : "",
+          phone: data.phone || "",
+          email: data.email || "",
+          username: data.username || "",
+          image: data.image || "",
+        });
+      } catch (error: any) {
+        console.error("Error fetching user:", error.message);
       } finally {
         setLoading(false);
       }
@@ -92,32 +85,23 @@ export default function EditProfilePage() {
   // ✅ Save API
   const handleSave = async () => {
     try {
-      const res = await fetch("http://localhost:5000/api/auth/update", {
-        method: "PUT",
-        credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${sessionStorage.getItem("accessToken")}`,
-        },
-        body: JSON.stringify({
-          name: formData.fullName,
-          gender: formData.gender,
-          DateOfBirth: formData.birthday,
-          phone: formData.phone,
-          email: formData.email,
-          username: formData.username,
-          image: formData.image,
-        }),
-      });
+      const token = sessionStorage.getItem("accessToken");
+      if (!token) return;
 
-      const data = await res.json();
-      if (res.ok) {
-        toast.success("Profile updated successfully!");
-      } else {
-        toast.error(data.message || "Failed to update profile");
-      }
-    } catch (error) {
-      console.error("Error updating profile:", error);
+      await apiPut("/api/auth/update", {
+        name: formData.fullName,
+        gender: formData.gender,
+        DateOfBirth: formData.birthday,
+        phone: formData.phone,
+        email: formData.email,
+        username: formData.username,
+        image: formData.image,
+      }, token);
+
+      toast.success("Profile updated successfully!");
+    } catch (error: any) {
+      console.error("Error updating profile:", error.message);
+      toast.error(error.message || "Failed to update profile");
     }
   };
 

@@ -11,6 +11,7 @@ import { useCart } from "../context/cartContext";
 import { toast } from "sonner";
 import { LoaderThree } from "@/components/ui/loader";
 import Loader from "@/components/Loader2";
+import { apiGet } from "../utils/api";
 
 // ✅ CartItem (backend schema)
 type CartItem = {
@@ -61,8 +62,8 @@ export default function CartPage() {
   // 🔹 Fetch cart
   const fetchCart = async () => {
     try {
-      const res = await fetch(`http://localhost:5000/api/cart/${userId}`);
-      const data = await res.json();
+      const data = await apiGet<{ items: CartItem[] }>(`/api/cart/${userId}`);
+      const items: CartItem[] = Array.isArray(data.items) ? data.items : [];
       setCart(data);
     } catch (err) {
       console.error("Error fetching cart:", err);
@@ -79,14 +80,15 @@ export default function CartPage() {
   useEffect(() => {
     const fetchAddresses = async () => {
       const token = sessionStorage.getItem("accessToken");
+
       try {
-        const res = await fetch(`http://localhost:5000/api/users/address`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        const data = await res.json();
+        const data = await apiGet<any[]>("/api/users/address", token);
+
         setAddresses(data || []);
+        localStorage.setItem("addresses", JSON.stringify(data || []));
       } catch (err) {
-        toast.error(`Error fetching addresses:${err}`);
+        console.error("Error fetching addresses:", err);
+        setAddresses([]); // fallback to empty list
       } finally {
         setLoadingAddresses(false);
       }
@@ -175,7 +177,15 @@ export default function CartPage() {
           {activeStep === 1 ? (
             <div className="flex flex-col gap-6 max-h-96 overflow-y-auto pr-2">
               {!cart || cart.items.length === 0 ? (
-                <p className="text-gray-500">Your cart is empty.</p>
+                <div className="flex flex-col items-center justify-center text-gray-500">
+                  <Image
+                    src="/empty-cart.png"
+                    alt="shopping-cart"
+                    width={100}
+                    height={100}
+                  />
+                  <span className="mt-2">Your cart is empty.</span>
+                </div>
               ) : (
                 cart.items.map((item) => (
                   <div

@@ -7,6 +7,8 @@ import { ArrowLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useOrders } from "@/app/context/orderContext";
 import Loader from "@/components/Loader2";
+import { apiDelete } from "@/app/utils/api";
+import Image from "next/image";
 
 
 
@@ -22,39 +24,25 @@ export default function OrderList() {
     fetchOrders().finally(() => setLoading(false));
   }, [fetchOrders]);
 
-  // Delete order handler
-  const deleteOrder = async (orderId: string) => {
+    const deleteOrder = async (orderId: string) => {
+    const token = sessionStorage.getItem("accessToken");
+    if (!token) {
+      toast.error("User not logged in");
+      return;
+    }
+  
     try {
-      const token = sessionStorage.getItem("accessToken");
-      if (!token) {
-        toast.error("You must be logged in to delete orders.");
-        return;
-      }
-
-      const res = await fetch(`http://localhost:5000/api/orders/${orderId}`, {
-        method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      const data = await res.json();
-      setOpen(false);
-
-      if (res.ok) {
-        toast("Order deleted permanently!", {
-          className: "font-large",
-          duration: 3000,
-        });
-
-        // ✅ Update context state directly
-        setOrders((prev) => prev.filter((order) => order._id !== orderId));
-      } else {
-        toast.error(data.message || "❌ Failed to delete order");
-      }
-    } catch (err) {
-      console.error("Error deleting order:", err);
-      toast.error("Something went wrong!");
+      const data = await apiDelete<{ addresses: any[] }>(
+        `/api/orders/${orderId}`,
+        token
+      );
+  
+      setOpen(false)
+      toast.success("Order deleted!");
+      setOrders((prev) => prev.filter((order) => order._id !== orderId));
+    } catch (error: any) {
+      console.error("Error deleting Order:", error);
+      toast.error(error.message || "Failed to delete Order");
     }
   };
 
@@ -68,19 +56,25 @@ export default function OrderList() {
     <div className="min-h-screen bg-[url('/userpage.jpg')] bg-cover bg-center px-6 py-12 w-[95%] mx-auto rounded-3xl my-4">
       {/* Back button */}
       <button
-        onClick={() => router.back()}
+        onClick={() => router.push("/Profile")}
         className="flex items-center gap-2 text-gray-700 hover:text-purple-700 transition mb-6"
       >
         <ArrowLeft size={18} /> Back
       </button>
 
-      <h1 className="scroll-m-20 text-center text-4xl font-bold tracking-tight text-balance mb-3">
+      <h1 className="scroll-m-20 text-center text-4xl font-bold tracking-tight text-balance mb-5">
         My Orders:
       </h1>
 
       {orders.length === 0 ? (
-        <div className="bg-white/70 backdrop-blur-md p-10 rounded-2xl shadow-lg text-center">
-          <p className="text-gray-600 text-lg">You don’t have any orders yet.</p>
+        <div className="bg-white/90 backdrop-blur-md p-10 rounded-2xl shadow-lg text-center h-100 items-center justify-center flex flex-col ">
+          <Image
+          src={"/empty-box.png"}
+          alt="EmptyOrderList"
+          width={100}
+          height={100}
+          />
+          <p className="text-gray-600 text-lg justify-center items-center whitespace-nowrap">You don’t have any orders yet.</p>
         </div>
       ) : (
         <div className="space-y-8">

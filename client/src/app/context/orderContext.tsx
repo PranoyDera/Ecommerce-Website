@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useContext, useState, useEffect, useCallback } from "react";
+import { apiGet } from "../utils/api";
 
 interface Item {
   productId: string;
@@ -36,31 +37,22 @@ export const OrderProvider = ({ children }: { children: React.ReactNode }) => {
   const [orders, setOrders] = useState<Order[]>([]);
 
   const fetchOrders = useCallback(async () => {
-    const userId = localStorage.getItem("userId");
-    const token = sessionStorage.getItem("accessToken");
-    if (!userId || !token) {
-      setOrders([]); // clear orders if user not logged in
-      return;
-    }
+  const userId = localStorage.getItem("userId");
+  const token = sessionStorage.getItem("accessToken");
 
-    try {
-      const res = await fetch(`http://localhost:5000/api/orders/${userId}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      const data = await res.json();
-      if (res.ok) {
-        setOrders(data || []);
-      } else {
-        console.error("Failed to fetch orders:", data.message);
-        setOrders([]);
-      }
-    } catch (err) {
-      console.error("Error fetching orders:", err);
-      setOrders([]);
-    }
-  }, []);
+  if (!userId || !token) {
+    setOrders([]); // clear orders if user not logged in
+    return;
+  }
+
+  try {
+    const data = await apiGet<Order[]>(`/api/orders/${userId}`, token);
+    setOrders(data || []);
+  } catch (err: any) {
+    console.error("Error fetching orders:", err.message || err);
+    setOrders([]); // fallback to empty
+  }
+}, []);
 
   useEffect(() => {
     fetchOrders();

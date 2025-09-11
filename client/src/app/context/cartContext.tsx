@@ -1,6 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect } from "react";
+import { apiDelete, apiGet, apiPost } from "../utils/api";
 
 type CartItem = {
   productId: string;
@@ -43,68 +44,52 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
   const [buyNowItems, setBuyNowItems] = useState<BuyNowItem[]>([]); // ✅ separate state
 
   // ---------------- CART ----------------
-  const fetchCart = React.useCallback(async (userId: string) => {
-    try {
-      if (!userId) return;
+const fetchCart = React.useCallback(async (userId: string) => {
+  try {
+    if (!userId) return;
 
-      const res = await fetch(`http://localhost:5000/api/cart/${userId}`);
-      if (!res.ok) throw new Error("Failed to fetch cart");
+    const data = await apiGet<{ items: CartItem[] }>(`/api/cart/${userId}`);
+    const items: CartItem[] = Array.isArray(data.items) ? data.items : [];
+    setCart(items);
+  } catch (err) {
+    console.error("Error fetching cart:", err);
+    setCart([]);
+  }
+}, []);
 
-      const data = await res.json();
-      const items: CartItem[] = Array.isArray(data.items) ? data.items : [];
-      setCart(items);
-    } catch (err) {
-      console.error("Error fetching cart:", err);
-      setCart([]);
-    }
-  }, []);
+const addToCart = async (userId: string, product: CartItem) => {
+  try {
+    const data = await apiPost<{ items: CartItem[] }>(
+      `/api/cart/${userId}`,
+      product
+    );
+    setCart(data.items || []);
+  } catch (err) {
+    console.error("Error adding to cart:", err);
+  }
+};
 
-  const addToCart = async (userId: string, product: CartItem) => {
-    try {
-      const res = await fetch(`http://localhost:5000/api/cart/${userId}`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(product),
-      });
+const removeFromCart = async (userId: string, productId: string) => {
+  try {
+    const data = await apiDelete<{ items: CartItem[] }>(
+      `/api/cart/${userId}/${productId}`
+    );
+    setCart(data.items || []);
+  } catch (err) {
+    console.error("Error removing from cart:", err);
+  }
+};
 
-      if (!res.ok) throw new Error("Failed to add to cart");
+const clearCart = async (userId: string) => {
+  try {
+    if (!userId) return;
 
-      const data = await res.json();
-      setCart(data.items || []);
-    } catch (err) {
-      console.error("Error adding to cart:", err);
-    }
-  };
-
-  const removeFromCart = async (userId: string, productId: string) => {
-    try {
-      const res = await fetch(
-        `http://localhost:5000/api/cart/${userId}/${productId}`,
-        { method: "DELETE" }
-      );
-
-      if (!res.ok) throw new Error("Failed to remove from cart");
-
-      const data = await res.json();
-      setCart(data.items || []);
-    } catch (err) {
-      console.error("Error removing from cart:", err);
-    }
-  };
-
-  const clearCart = async (userId: string) => {
-    try {
-      if (!userId) return;
-
-      await fetch(`http://localhost:5000/api/cart/${userId}`, {
-        method: "DELETE",
-      });
-
-      setCart([]);
-    } catch (err) {
-      console.error("Error clearing cart:", err);
-    }
-  };
+    await apiDelete(`/api/cart/${userId}`);
+    setCart([]);
+  } catch (err) {
+    console.error("Error clearing cart:", err);
+  }
+};
 
   // ---------------- BUY NOW ----------------
   const addBuyNow = (product: BuyNowItem) => {

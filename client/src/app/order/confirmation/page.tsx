@@ -11,6 +11,7 @@ import Loader from "@/components/Loader2";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/stateful-button";
 import { openRazorpayCheckout } from "@/app/utils/paymentUtils";
+import { apiDelete, apiPost } from "@/app/utils/api";
 
 export default function OrderConfirmation() {
   const router = useRouter();
@@ -116,6 +117,7 @@ export default function OrderConfirmation() {
   }, [checkoutMode, buyNowItems, cart]);
 
   // ✅ Place order
+
   const handleOrderPlace = async () => {
     try {
       let orderPayload;
@@ -154,16 +156,13 @@ export default function OrderConfirmation() {
           async () => {
             toast.success("Order Placed!");
 
-            await fetch("http://localhost:5000/api/orders", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ ...orderPayload, paymentStatus: "Paid" }),
+            await apiPost("/api/orders", {
+              ...orderPayload,
+              paymentStatus: "Paid",
             });
 
             if (checkoutMode !== "buyNow" && userId) {
-              await fetch(`http://localhost:5000/api/cart/${userId}`, {
-                method: "DELETE",
-              });
+              await apiDelete(`/api/cart/${userId}`);
               setCart([]);
               await fetchCart(userId);
             }
@@ -180,18 +179,13 @@ export default function OrderConfirmation() {
         return;
       }
 
-      await fetch("http://localhost:5000/api/orders", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(orderPayload),
-      });
+      // COD Flow
+      await apiPost("/api/orders", orderPayload);
 
       if (checkoutMode === "buyNow") {
         localStorage.removeItem("order");
       } else if (userId) {
-        await fetch(`http://localhost:5000/api/cart/${userId}`, {
-          method: "DELETE",
-        });
+        await apiDelete(`/api/cart/${userId}`);
         setCart([]);
         await fetchCart(userId);
       }
@@ -205,7 +199,6 @@ export default function OrderConfirmation() {
       toast.error("Failed to place order, please try again.");
     }
   };
-
   if (loading)
     return (
       <div className="h-screen w-[95%] mx-auto rounded-3xl bg-white my-4 flex items-center justify-center">
@@ -255,10 +248,12 @@ export default function OrderConfirmation() {
         </div>
         <div className="p-4 border rounded-xl">
           <div className="flex justify-between border-b pb-2">
-            <h2 className="text-lg font-semibold ">
-            Shipping Address
-          </h2>
-          <Link href={"/cart?step=2"} className="text-blue-500 font-semibold">Edit</Link>
+            <h2 className="text-lg font-semibold ">Shipping Address</h2>
+            {checkoutMode !== "buyNow" && (
+              <Link href="/cart?step=2" className="text-blue-500 font-semibold">
+                Edit
+              </Link>
+            )}
           </div>
           {selectedAddress ? (
             <>

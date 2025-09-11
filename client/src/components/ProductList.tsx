@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ProductType } from "../../type";
+import { ProductType } from "../type";
 import Categories from "./Categories";
 import ProductCard from "./ProductCard";
 import Link from "next/link";
@@ -17,6 +17,7 @@ import {
   PaginationLink,
 } from "../components/pagination";
 import { useSearchParams } from "next/navigation";
+import { apiGet } from "@/app/utils/api";
 
 // Local type for DummyJSON API response
 type DummyJSONProduct = {
@@ -108,20 +109,19 @@ const ProductList = ({
     loadProducts();
   }, [page, category, sort]); // ✅ depend on `sort`
 
-  const fetchAddresses = async () => {
-    const token = sessionStorage.getItem("accessToken");
-    try {
-      const res = await fetch(`http://localhost:5000/api/users/address`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const data = await res.json();
+const fetchAddresses = async () => {
+  const token = sessionStorage.getItem("accessToken");
 
-      setAddresses(data || []);
-      localStorage.setItem("addresses", JSON.stringify(data || []));
-    } catch (err) {
-      console.error("Error fetching addresses:", err);
-    }
-  };
+  try {
+    const data = await apiGet<any[]>("/api/users/address", token);
+
+    setAddresses(data || []);
+    localStorage.setItem("addresses", JSON.stringify(data || []));
+  } catch (err) {
+    console.error("Error fetching addresses:", err);
+    setAddresses([]); // fallback to empty list
+  }
+};
 
   useEffect(() => {
     fetchAddresses();

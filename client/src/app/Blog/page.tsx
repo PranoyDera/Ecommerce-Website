@@ -9,25 +9,20 @@ import { useRouter } from "next/navigation";
 // 👇 Import the reusable BlogCard
 import BlogCard from "@/components/BlogCard";
 import Loader from "@/components/Loader2";
+import { apiDelete, apiGet } from "../utils/api";
 
 const BlogPage = () => {
   const [blogs, setBlogs] = useState<any[]>([]);
   const [open, setOpen] = useState(false);
   const [selectedBlog, setSelectedBlog] = useState<string | null>(null);
   const router = useRouter();
-  const [loading,setLoading] = useState<boolean>(true);
+  const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
     const fetchBlogs = async () => {
       try {
         const token = sessionStorage.getItem("accessToken");
-        const res = await fetch("http://localhost:5000/api/blogs", {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-        const data = await res.json();
+        const data = await apiGet("/api/blogs", token);
         setBlogs(data);
         setLoading(false);
       } catch (error) {
@@ -40,31 +35,16 @@ const BlogPage = () => {
   const handleDelete = async (id: string) => {
     try {
       const token = sessionStorage.getItem("accessToken");
-      const res = await fetch(`http://localhost:5000/api/blogs/${id}`, {
-        method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      const data = await res.json();
-
-      if (res.ok) {
-        toast("Blog deleted successfully");
-        setBlogs((prev) => prev.filter((blog) => blog._id !== id));
-        setOpen(false);
-      } else {
-        alert(data.message || "Failed to delete blog");
-      }
+      const data = await apiDelete(`/api/blogs/${id}`, token);
+      toast("Blog deleted successfully");
+      setBlogs((prev) => prev.filter((blog) => blog._id !== id));
+      setOpen(false);
     } catch (error) {
       console.error("Error deleting blog:", error);
-      alert("Something went wrong");
+      toast.error(error.message);
+      setOpen(false);
     }
   };
-
-
-  
-
 
   return (
     <div className="min-h-screen bg-gray-100 px-6 py-12 w-[95%] mx-auto rounded-3xl my-4">
@@ -78,30 +58,30 @@ const BlogPage = () => {
         </p>
 
         {/* Blog Cards */}
-  {blogs.length === 0 ? (
-    // Show Loader if no blogs
-    <Loader />
-  ) : (
-    <div className="min-h-[300px] grid items-center gap-4 grid-cols-1 md:grid-cols-3">
-      {blogs.map((blog) => (
-        <BlogCard
-          key={blog._id}
-          id={blog._id}
-          image={blog.image}
-          title={blog.title}
-          description={blog.content}
-          author={blog.author || "Unknown"}
-          authorImage="/userImage.png"
-          readMoreLink={`/Blog/${blog._id}`}
-          onDelete={(id) => {
-            setSelectedBlog(id);
-            setOpen(true);
-          }}
-        />
-      ))}
-    </div>
-  )}
-</div>
+        {blogs.length === 0 ? (
+          // Show Loader if no blogs
+          <Loader />
+        ) : (
+          <div className="min-h-[300px] grid items-center gap-4 grid-cols-1 md:grid-cols-3">
+            {blogs.map((blog) => (
+              <BlogCard
+                key={blog._id}
+                id={blog._id}
+                image={blog.image}
+                title={blog.title}
+                description={blog.content}
+                author={blog.author || "Unknown"}
+                authorImage="/userImage.png"
+                readMoreLink={`/Blog/${blog._id}`}
+                onDelete={(id) => {
+                  setSelectedBlog(id);
+                  setOpen(true);
+                }}
+              />
+            ))}
+          </div>
+        )}
+      </div>
 
       {/* Create Blog */}
       <div className="max-w-6xl mx-auto my-8 flex flex-col justify-center items-center">

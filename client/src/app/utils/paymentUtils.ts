@@ -1,6 +1,11 @@
 import { toast } from "sonner";
+import { apiPost } from "./api";
 
-export const openRazorpayCheckout = async (amount: number, onSuccess: () => void, onFailure?: () => void) => {
+export const openRazorpayCheckout = async (
+  amount: number,
+  onSuccess: () => void,
+  onFailure?: () => void
+) => {
   try {
     // 1️⃣ Dynamically load Razorpay script
     const res = await new Promise<boolean>((resolve) => {
@@ -17,12 +22,7 @@ export const openRazorpayCheckout = async (amount: number, onSuccess: () => void
     }
 
     // 2️⃣ Create order on backend
-    const orderRes = await fetch("http://localhost:5000/api/payment/create-order", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ amount }),
-    });
-    const orderData = await orderRes.json();
+    const orderData = await apiPost<any>("/api/payment/create-order", { amount });
 
     // 3️⃣ Razorpay options
     const options = {
@@ -35,12 +35,10 @@ export const openRazorpayCheckout = async (amount: number, onSuccess: () => void
       handler: async (response: any) => {
         // Verify payment
         try {
-          const verifyRes = await fetch("http://localhost:5000/api/payment/verify-payment", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ razorpay_payment_id: response.razorpay_payment_id }),
+          const verifyData = await apiPost<any>("/api/payment/verify-payment", {
+            razorpay_payment_id: response.razorpay_payment_id,
           });
-          const verifyData = await verifyRes.json();
+
           if (verifyData.success) {
             onSuccess();
           } else {

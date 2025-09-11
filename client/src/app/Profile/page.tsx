@@ -9,11 +9,13 @@ import {
   LogOut,
   ChevronRight,
   Trash2,
+  ArrowLeft,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
 import { useEffect, useState } from "react";
 import ConfirmModal from "../../components/ConfirmModal";
+import { apiDelete, apiGet } from "../utils/api";
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -28,8 +30,8 @@ export default function ProfilePage() {
   const [isLogoutOpen, setIsLogoutOpen] = useState(false);
 
   const handleLogout = () => {
-    localStorage.removeItem("accessToken");
-    localStorage.removeItem("refreshToken");
+    sessionStorage.removeItem("accessToken");
+    sessionStorage.removeItem("refreshToken");
     localStorage.removeItem("username");
     localStorage.removeItem("email");
 
@@ -37,59 +39,47 @@ export default function ProfilePage() {
     router.replace("/login");
   };
 
-  const handleDeleteAccount = async () => {
+ const handleDeleteAccount = async () => {
+  try {
+    const token = sessionStorage.getItem("accessToken") || "";
+    const refreshToken = localStorage.getItem("refreshToken");
+
+    // ✅ use apiDelete with body support (we’ll pass body via fetch-like logic)
+    const res = await apiDelete<{ message: string }>("/api/auth/delete", token);
+
+    toast.success("Account deleted successfully!");
+    localStorage.clear();
+    sessionStorage.clear();
+    router.replace("/register");
+  } catch (err: any) {
+    console.error("Error deleting account:", err);
+    toast.error(err.message || "Something went wrong!");
+  }
+};
+
+useEffect(() => {
+  const fetchUser = async () => {
     try {
-      const res = await fetch("http://localhost:5000/api/auth/delete", {
-        method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${sessionStorage.getItem("accessToken")}`,
-        },
-        body: JSON.stringify({
-          refreshToken: localStorage.getItem("refreshToken"),
-        }),
-      });
-
-      const data = await res.json();
-
-      if (res.ok) {
-        toast.success("Account deleted successfully!");
-        localStorage.clear();
-        sessionStorage.clear();
-        router.replace("/register");
-      } else {
-        toast.error(data.message || "Failed to delete account");
-      }
+      const token = sessionStorage.getItem("accessToken") || "";
+      const data = await apiGet<any>("/api/auth/me", token); // ✅ use apiGet
+      setUser(data);
     } catch (err) {
-      console.error("Error deleting account:", err);
-      toast.error("Something went wrong!");
+      console.error("Failed to fetch user:", err);
     }
   };
 
-  useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const res = await fetch("http://localhost:5000/api/auth/me", {
-          credentials: "include",
-          headers: {
-            Authorization: `Bearer ${sessionStorage.getItem("accessToken")}`,
-          },
-        });
-        const data = await res.json();
-        if (res.ok) {
-          setUser(data);
-        }
-      } catch (err) {
-        console.error("Failed to fetch user:", err);
-      }
-    };
-
-    fetchUser();
-  }, []);
+  fetchUser();
+}, []);
 
   return (
     <div className="min-h-screen bg-[url('/userpage.jpg')] bg-cover bg-center px-6 py-8 flex flex-col items-center w-[95%] mx-auto my-4 rounded-3xl">
       <div className="mt-6 w-[80vw] max-w-2xl space-y-5 bg-white/80 backdrop-blur-lg rounded-3xl p-6 shadow-lg">
+       <button
+        onClick={() => router.push("/")}
+        className="flex items-center gap-2 text-gray-700 hover:text-purple-700 transition mb-6"
+      >
+        <ArrowLeft size={18} /> Back
+      </button>
         {/* Profile Section */}
         <div className="flex flex-col items-center">
           <Image

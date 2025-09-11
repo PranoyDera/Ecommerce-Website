@@ -1,5 +1,6 @@
 "use client";
 
+import { apiGet, apiPost, apiPut } from "@/app/utils/api";
 import React, { useEffect, useState } from "react";
 import Select from "react-select";
 import { toast } from "sonner";
@@ -110,22 +111,18 @@ const AddressForm: React.FC<AddressFormProps> = ({
   }, [selectedState]);
 
   
-  useEffect(() => {
+useEffect(() => {
     const fetchAddress = async () => {
       if (!addressId) return;
       try {
         const token = sessionStorage.getItem("accessToken");
-        const res = await fetch(
-          `http://localhost:5000/api/users/address/${addressId}`,
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          }
+        if (!token) return;
+
+        const data = await apiGet<SavedAddress>(
+          `/api/users/address/${addressId}`,
+          token
         );
 
-        if (!res.ok) throw new Error("Failed to fetch address");
-        const data = await res.json();
-
-        // Prefill form
         setAddress(data.address || "");
         setZipCode(data.zipCode || "");
         setLandmark(data.landmark || "");
@@ -140,9 +137,8 @@ const AddressForm: React.FC<AddressFormProps> = ({
 
     fetchAddress();
   }, [addressId]);
-
   
-  const handleSubmit = async (e: React.FormEvent) => {
+ const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     const token = sessionStorage.getItem("accessToken");
@@ -161,44 +157,29 @@ const AddressForm: React.FC<AddressFormProps> = ({
     };
 
     try {
-      const url = isEdit
-        ? `http://localhost:5000/api/users/address/${addressId}`
-        : "http://localhost:5000/api/users/address";
-
-      const method = isEdit ? "PUT" : "POST";
-
-      const res = await fetch(url, {
-        method,
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(payload),
-      });
-
-      const data = await res.json();
-      if (!res.ok) {
-        toast.error(data.message || "Failed to save address");
-        return;
+      let data: any;
+      if (isEdit) {
+        data = await apiPut(`/api/users/address/${addressId}`, payload, token);
+      } else {
+        data = await apiPost(`/api/users/address`, payload, token);
       }
 
       const savedAddress: SavedAddress =
         data?.address ??
-        (Array.isArray(data?.addresses) ? data.addresses[data.addresses.length - 1] : undefined) ??
+        (Array.isArray(data?.addresses)
+          ? data.addresses[data.addresses.length - 1]
+          : undefined) ??
         (data?._id ? data : undefined) ??
-        payload; // fallback to payload if API doesn't return a single item
+        payload;
 
       toast.success(isEdit ? "Address updated successfully!" : "Address added successfully!");
       onAddressAdded?.();
-
-      // 🔸 IMPORTANT: pass the saved address back to parent so it can store it in localStorage
       onSuccess?.(savedAddress);
     } catch (err) {
       console.error(err);
       toast.error("Error saving address");
     }
   };
-
   // ✅ Custom styles for react-select
   const selectStyles = {
     control: (base: any) => ({

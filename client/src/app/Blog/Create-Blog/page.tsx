@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/stateful-button";
 
 const CreateBlog = () => {
   const [blogName, setBlogName] = useState("");
+  const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5000";
   const [categoryList, setCategoryList] = useState("");
   const [content, setContent] = useState("");
   const [preview, setPreview] = useState<string | null>(null);
@@ -39,52 +40,55 @@ const CreateBlog = () => {
   }, [preview]);
 
   // Submit blog
-  async function submitBlog() {
-    try {
-      const token = sessionStorage.getItem("accessToken");
-      if (!token) {
-        toast.error("No token found. Please log in.");
-        return;
-      }
-
-      if (!blogName || !content || !categoryList) {
-        toast.error("Please fill all fields before publishing.");
-        return;
-      }
-
-      setUploading(true);
-
-      const formData = new FormData();
-      formData.append("title", blogName);
-      formData.append("content", content);
-      formData.append("category", categoryList);
-
-      if (imageFile) {
-        formData.append("image", imageFile); // this goes to multer → cloudinary
-      }
-
-      const response = await fetch("http://localhost:5000/api/blogs", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`, // don't set Content-Type → browser auto sets
-        },
-        body: formData,
-      });
-
-      const data = await response.json();
-      if (response.ok) {
-        toast.success("Blog Published Successfully");
-        router.push("/Blog"); // redirect to blogs page
-      } else {
-        throw new Error(data.message || "Failed to create blog");
-      }
-    } catch (error: any) {
-      console.error("Error submitting blog:", error);
-      toast.error(error.message || "Something went wrong");
-    } finally {
-      setUploading(false);
+async function submitBlog() {
+  try {
+    const token = sessionStorage.getItem("accessToken");
+    if (!token) {
+      toast.error("No token found. Please log in.");
+      return;
     }
+
+    if (!blogName || !content || !categoryList) {
+      toast.error("Please fill all fields before publishing.");
+      return;
+    }
+
+    setUploading(true);
+
+    const formData = new FormData();
+    formData.append("title", blogName);
+    formData.append("content", content);
+    formData.append("category", categoryList);
+
+    if (imageFile) {
+      formData.append("image", imageFile);
+    }
+
+    // Custom fetch for FormData since apiPost expects JSON
+    const res = await fetch(`${API_BASE_URL}/api/blogs`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`, // only auth header
+      },
+      body: formData,
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      throw new Error(data.message || "Failed to publish blog");
+    }
+
+    toast.success("Blog Published Successfully");
+    router.push("/Blog");
+  } catch (error: any) {
+    console.error("Error submitting blog:", error);
+    toast.error(error.message || "Something went wrong");
+  } finally {
+    setUploading(false);
   }
+}
+
 
   return (
     <div className="min-h-screen bg-white md:bg-gray-100 flex flex-col items-center py-8 px-4 w-[95%] mx-auto rounded-3xl my-4">
