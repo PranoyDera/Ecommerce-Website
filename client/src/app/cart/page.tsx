@@ -48,7 +48,7 @@ export default function CartPage() {
   const activeStep = parseInt(searchParams.get("step") || "1");
 
   const [shippingForm, setShippingForm] = useState<ShippingFormInputs>();
-  const [cart, setCart] = useState<CartResponse | null>(null);
+  const [cart, setCart] = useState<Partial<CartResponse> | null>(null);
   const [addresses, setAddresses] = useState<Address[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingAddresses, setLoadingAddresses] = useState(true);
@@ -82,7 +82,7 @@ export default function CartPage() {
       const token = sessionStorage.getItem("accessToken");
 
       try {
-        const data = await apiGet<any[]>("/api/users/address", token);
+        const data = await apiGet<any[]>("/api/users/address", token ?? undefined);
 
         setAddresses(data || []);
         localStorage.setItem("addresses", JSON.stringify(data || []));
@@ -107,23 +107,23 @@ export default function CartPage() {
     fetchCart();
   };
   // ✅ Totals
-  const subTotal =
-    cart?.items.reduce((acc, item) => acc + item.price * item.quantity, 0) ?? 0;
+  const subTotal = cart?.items?.reduce((acc, item) => acc + item.price * item.quantity, 0) ?? 0;
+
 
   const totalDiscount =
-    cart?.items.reduce(
+    cart?.items?.reduce(
       (acc, item) =>
         acc +
         ((item.price * (item.discountPercentage ?? 0)) / 100) * item.quantity,
       0
     ) ?? 0;
 
-  const shipping = cart && cart.items.length > 0 ? 10 : 0;
+  const shipping = (cart?.items?.length ?? 0) > 0 ? 10 : 0;
   const total = subTotal - totalDiscount + shipping;
 
   // 🔹 Save totals
   useEffect(() => {
-    if (cart && cart.items.length > 0) {
+    if (cart && (cart?.items?.length ?? 0) > 0) {
       localStorage.setItem("subtotal", subTotal.toFixed(2));
       localStorage.setItem("total", total.toFixed(2));
     } else {
@@ -176,7 +176,7 @@ export default function CartPage() {
         <div className="w-full lg:w-7/12 shadow-lg p-8 rounded-lg flex flex-col gap-8 bg-white/70 border-1 border-gray-100">
           {activeStep === 1 ? (
             <div className="flex flex-col gap-6 max-h-96 overflow-y-auto pr-2">
-              {!cart || cart.items.length === 0 ? (
+              {!cart || (cart?.items?.length) === 0 ? (
                 <div className="flex flex-col items-center justify-center text-gray-500">
                   <Image
                     src="/empty-cart.png"
@@ -187,7 +187,7 @@ export default function CartPage() {
                   <span className="mt-2">Your cart is empty.</span>
                 </div>
               ) : (
-                cart.items.map((item) => (
+                cart?.items?.map((item) => (
                   <div
                     className="flex items-center justify-between"
                     key={item.productId}
@@ -266,7 +266,7 @@ export default function CartPage() {
                     "selectedAddress",
                     JSON.stringify(newAddress)
                   );
-                  setAddresses((prev) => [...prev, newAddress]);
+                  setAddresses((prev) => [...prev, newAddress as Address]);
                   router.push("/cart?step=3", { scroll: false });
                 }}
               />
@@ -321,7 +321,7 @@ export default function CartPage() {
             </div>
           </div>
 
-          {activeStep === 1 && cart && cart.items.length > 0 && (
+          {activeStep === 1 && cart && (cart?.items?.length??0) > 0 && (
             <button
               className="w-full bg-gray-800 text-white p-2 rounded-lg cursor-pointer flex items-center justify-center gap-2 hover:bg-gray-900 transition-all duration-300"
               onClick={() => router.push("/cart?step=2", { scroll: false })}

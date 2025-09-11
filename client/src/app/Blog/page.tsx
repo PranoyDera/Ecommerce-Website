@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import Link from "next/link";
 import ConfirmModal from "@/components/ConfirmModal";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
@@ -11,8 +10,17 @@ import BlogCard from "@/components/BlogCard";
 import Loader from "@/components/Loader2";
 import { apiDelete, apiGet } from "../utils/api";
 
+// ✅ Blog interface (replace fields with your backend schema)
+interface Blog {
+  _id: string;
+  title: string;
+  content: string;
+  image?: string;
+  author?: string;
+}
+
 const BlogPage = () => {
-  const [blogs, setBlogs] = useState<any[]>([]);
+  const [blogs, setBlogs] = useState<Blog[]>([]);
   const [open, setOpen] = useState(false);
   const [selectedBlog, setSelectedBlog] = useState<string | null>(null);
   const router = useRouter();
@@ -21,12 +29,14 @@ const BlogPage = () => {
   useEffect(() => {
     const fetchBlogs = async () => {
       try {
-        const token = sessionStorage.getItem("accessToken");
-        const data = await apiGet("/api/blogs", token);
+        const token = sessionStorage.getItem("accessToken") || undefined;
+        const data = await apiGet<Blog[]>("/api/blogs", token);
         setBlogs(data);
-        setLoading(false);
       } catch (error) {
         console.error("Error fetching blogs:", error);
+        toast.error("Failed to fetch blogs");
+      } finally {
+        setLoading(false);
       }
     };
     fetchBlogs();
@@ -34,14 +44,17 @@ const BlogPage = () => {
 
   const handleDelete = async (id: string) => {
     try {
-      const token = sessionStorage.getItem("accessToken");
-      const data = await apiDelete(`/api/blogs/${id}`, token);
-      toast("Blog deleted successfully");
+      const token = sessionStorage.getItem("accessToken") || undefined;
+      await apiDelete(`/api/blogs/${id}`, token);
+      toast.success("Blog deleted successfully");
       setBlogs((prev) => prev.filter((blog) => blog._id !== id));
-      setOpen(false);
     } catch (error) {
-      console.error("Error deleting blog:", error);
-      toast.error(error.message);
+      if (error instanceof Error) {
+        toast.error(error.message);
+      } else {
+        toast.error("Something went wrong!");
+      }
+    } finally {
       setOpen(false);
     }
   };
@@ -58,16 +71,17 @@ const BlogPage = () => {
         </p>
 
         {/* Blog Cards */}
-        {blogs.length === 0 ? (
-          // Show Loader if no blogs
+        {loading ? (
           <Loader />
+        ) : blogs.length === 0 ? (
+          <p className="text-gray-500 text-center">No blogs available.</p>
         ) : (
           <div className="min-h-[300px] grid items-center gap-4 grid-cols-1 md:grid-cols-3">
             {blogs.map((blog) => (
               <BlogCard
                 key={blog._id}
                 id={blog._id}
-                image={blog.image}
+                image={blog.image ?? "/userImage.png"}
                 title={blog.title}
                 description={blog.content}
                 author={blog.author || "Unknown"}

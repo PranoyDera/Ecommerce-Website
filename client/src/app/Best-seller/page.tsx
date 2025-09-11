@@ -3,13 +3,27 @@ import ProductCard from '@/components/ProductCard';
 import ColourfulText from '@/components/ui/colourful-text';
 import React, { useEffect, useState } from 'react';
 
+
+interface Product {
+  id: number;
+  title: string;
+  description: string;
+  price: number;
+  thumbnail: string;
+  rating:number;
+  discountPercentage:number;
+  images: string[];
+}
+
 function BestSeller() {
-  const [products, setProducts] = useState([]); // ✅ state to hold products
+   const [products, setProducts] = useState<Product[]>([]); 
 
   const fetchProducts = async () => {
     const res = await fetch("https://dummyjson.com/products?limit=0");
     const data = await res.json();
-    const sortedProducts = data.products.sort((a, b) => b.rating - a.rating);
+    const sortedProducts = data.products.sort(
+      (a: Product, b: Product) => b.id - a.id
+    );
     const top30 = sortedProducts.slice(0, 30);
     setProducts(top30); 
   };

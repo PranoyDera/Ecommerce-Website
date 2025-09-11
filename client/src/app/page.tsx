@@ -3,7 +3,7 @@ import Carousel from '../components/Carousel'
 import ProductList from '../components/ProductList';
 
 
-const Homepage = async({searchParams}:{searchParams:Promise<{category:String}>}) => {
+const Homepage = async({searchParams}:{searchParams:Promise<{category:string}>}) => {
 
   const images = [
   '/featured.png',
