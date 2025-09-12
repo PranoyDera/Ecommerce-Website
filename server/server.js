@@ -18,8 +18,8 @@ const app = express();
 
 app.use(
   cors({
-    origin: "https://pro-cart-zeta.vercel.app"||"http://localhost:3000",
-    credentials: true, 
+    origin: true,       // Allow requests from any origin
+    credentials: true,  // Allow cookies/auth headers
   })
 );
 
