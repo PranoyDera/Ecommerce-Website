@@ -106,7 +106,8 @@ export default function OrderList() {
                       : "bg-gray-100 text-gray-700 border border-gray-300"
                   }`}
                 >
-                  {order.paymentStatus.toUpperCase()}
+                  {order?.paymentStatus?.toUpperCase()}
+
                 </span>
               </div>
 
