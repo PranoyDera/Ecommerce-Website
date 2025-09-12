@@ -53,7 +53,7 @@ export default function AuthForm({
 
   return (
     <div className="flex items-center justify-center h-screen bg-gradient-to-b from-white to-gray-100 dark:from-black dark:to-gray-900 shadow-2xl">
-      <div className="shadow-input mx-auto w-full max-w-md rounded-none bg-white p-6 md:rounded-2xl md:p-8 dark:bg-black">
+      <div className="shadow-input mx-auto md:w-full w-[80%] max-w-md rounded-2xl bg-white p-6 md:rounded-2xl md:p-8 dark:bg-black">
         {/* Logo (optional) */}
         <div className="flex justify-center mb-4">
           <Image src="/PRO-CART.png" alt="logo" width={200} height={150} />
@@ -100,7 +100,7 @@ export default function AuthForm({
 
         {/* Footer */}
         {(footerText || footerLink) && (
-          <p className="text-center text-sm text-neutral-600 dark:text-neutral-400">
+          <p className="text-center md:text-sm text-xs text-neutral-600 dark:text-neutral-400">
             {footerText && <span>{footerText} </span>}
             {footerLink && (
               <a
