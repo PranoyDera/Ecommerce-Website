@@ -16,13 +16,28 @@ connectDB();
 
 const app = express();
 
+// Allowed origins
+const allowedOrigins = [
+  "https://pro-cart-zeta.vercel.app",
+  "http://localhost:3000",
+];
+
 app.use(
   cors({
-    origin: "https://pro-cart-zeta.vercel.app/"||"http://localhost:3000",
-    credentials: true, 
+    origin: function (origin, callback) {
+      // allow requests with no origin (like Postman or server-to-server)
+      if (!origin) return callback(null, true);
+      if (allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
+    credentials: true, // allow cookies
   })
 );
 
+// Middleware
 app.use(express.json());
 
 // Routes
@@ -33,6 +48,7 @@ app.use("/api/orders", orderRoutes);
 app.use("/api/cart", cartRoutes);
 app.use("/api/payment", paymentRoutes);
 app.use("/api/search", searchRoutes);
-app.use("/api/feedback",feedbackRoutes);
+app.use("/api/feedback", feedbackRoutes);
+
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
