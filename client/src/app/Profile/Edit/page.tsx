@@ -18,7 +18,6 @@ import {
 import { Button } from "@/components/ui/stateful-button";
 import { apiGet, apiPut } from "@/app/utils/api";
 
-
 export default function EditProfilePage() {
   const [formData, setFormData] = useState({
     fullName: "",
@@ -88,15 +87,19 @@ export default function EditProfilePage() {
       const token = sessionStorage.getItem("accessToken");
       if (!token) return;
 
-      await apiPut("/api/auth/update", {
-        name: formData.fullName,
-        gender: formData.gender,
-        DateOfBirth: formData.birthday,
-        phone: formData.phone,
-        email: formData.email,
-        username: formData.username,
-        image: formData.image,
-      }, token);
+      await apiPut(
+        "/api/auth/update",
+        {
+          name: formData.fullName,
+          gender: formData.gender,
+          DateOfBirth: formData.birthday,
+          phone: formData.phone,
+          email: formData.email,
+          username: formData.username,
+          image: formData.image,
+        },
+        token
+      );
 
       toast.success("Profile updated successfully!");
     } catch (error: any) {
@@ -175,9 +178,12 @@ export default function EditProfilePage() {
               Birthday
             </Label>
             <DatePicker
-              value={formData.birthday}
-              onChange={(date: string) =>
-                setFormData({ ...formData, birthday: date })
+             value={formData.birthday}
+              onChange={(date: Date | undefined) =>
+                setFormData({
+                  ...formData,
+                  birthday: date ? date.toISOString().split("T")[0] : "", // convert to string (yyyy-mm-dd)
+                })
               }
               className="bg-white/80 h-[40px] mt-[3px] w-full focus:ring-[2px] focus:ring-blue-500 shadow-sm"
             />

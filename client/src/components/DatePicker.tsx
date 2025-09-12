@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/popover"
 
 interface DatePickerProps {
-  value?: String
+  value?: string
   onChange?: (date: Date | undefined) => void
   placeholder?: string
   className?: string
@@ -26,15 +26,18 @@ export function DatePicker({
   placeholder = "Pick a date",
   className,
 }: DatePickerProps) {
-  const [date, setDate] = React.useState<Date | undefined>(value)
+  const [date, setDate] = React.useState<string | undefined>(value)
 
-  // Update local state if parent updates `value`
+  // Sync local state if parent updates `value`
   React.useEffect(() => {
     if (value !== undefined) setDate(value)
   }, [value])
 
   const handleSelect = (selectedDate: Date | undefined) => {
-    setDate(selectedDate)
+    // Save as string in state
+    setDate(selectedDate ? selectedDate.toISOString() : undefined)
+
+    // Notify parent with Date object
     if (onChange) onChange(selectedDate)
   }
 
@@ -50,18 +53,18 @@ export function DatePicker({
           )}
         >
           <CalendarIcon className="mr-2 h-4 w-4" />
-          {date ? format(date, "PPP") : <span>{placeholder}</span>}
+          {date ? format(new Date(date), "PPP") : <span>{placeholder}</span>}
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-auto p-0" align="start">
         <Calendar
           mode="single"
-          selected={date}
+          selected={date ? new Date(date) : undefined} // convert string → Date
           onSelect={handleSelect}
           className="bg-white w-[200px] rounded-md"
           initialFocus
           captionLayout="dropdown"
-          fromYear={1950}            
+          fromYear={1950}
           toYear={new Date().getFullYear()}
         />
       </PopoverContent>

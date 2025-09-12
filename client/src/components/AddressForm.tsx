@@ -9,7 +9,7 @@ type Country = { country: string };
 type State = { name: string };
 type City = string;
 
-type SavedAddress = {
+export type SavedAddress = {
   _id?: string;
   address: string;
   city: string;
@@ -17,9 +17,13 @@ type SavedAddress = {
   zipCode: string;
   country: string;
   landmark?: string;
+  name?:string | undefined;
+  email?:string | undefined;
+  phone?:string | undefined;
 };
 
 interface AddressFormProps {
+   existingAddress?: any;
   onAddressAdded?: () => void;
   onCancel?: () => void;
   width?: string;

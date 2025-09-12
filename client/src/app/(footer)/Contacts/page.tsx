@@ -68,7 +68,7 @@ const ContactPage = () => {
                 Ecospace Building 2B <br />
                 Street Number 372 <br />
                 Eco-space business park, New Town, 5532 <br />
-                Mon–Fri | 09:00 – 20:00 (local time)
+                Mon-Fri | 09:00 - 20:00 (local time)
               </p>
             </div>
 

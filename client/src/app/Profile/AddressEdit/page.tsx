@@ -24,7 +24,7 @@ function EditAddress() {
 
   try {
     setLoading(true);
-    const data = await apiGet<any[]>("/api/users/address", token);
+    const data = await apiGet<any[]>("/api/users/address", token || undefined);
     
     setAddresses(data || []);
     setLoading(false);

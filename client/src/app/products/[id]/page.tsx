@@ -154,7 +154,7 @@ const ProductPage = () => {
         {/* Price & Discount */}
         <div className="flex items-center gap-4">
           <h2 className="text-2xl font-semibold text-black">
-            ${(Number((discountPrice) * quantity)-10).toFixed(2)}
+           ${Number((Number(discountPrice) * quantity - 10).toFixed(2))}
           </h2>
           <p className="line-through text-gray-500">
             ${(product.price * quantity).toFixed(2)}

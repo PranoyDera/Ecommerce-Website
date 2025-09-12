@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { apiDelete, apiGet, apiPost } from "../utils/api";
+import { number } from "zod";
 
 type CartItem = {
   productId: string;
@@ -14,7 +15,7 @@ type CartItem = {
 
 // 👇 Separate type for Buy Now products
 type BuyNowItem = {
-  productId: string;
+  productId: string | number;
   title: string;
   price: number;
   quantity: number;

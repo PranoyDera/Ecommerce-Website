@@ -35,7 +35,9 @@ const Categories = () => {
     if (scrollRef.current) {
       const { scrollLeft, clientWidth } = scrollRef.current;
       const scrollAmount =
-        direction === "left" ? scrollLeft - clientWidth : scrollLeft + clientWidth;
+        direction === "left"
+          ? scrollLeft - clientWidth
+          : scrollLeft + clientWidth;
       scrollRef.current.scrollTo({ left: scrollAmount, behavior: "smooth" });
     }
   };
@@ -69,7 +71,9 @@ const Categories = () => {
         {categories.map((category) => (
           <div
             key={category}
-            ref={(el) => (categoryRefs.current[category] = el)}
+            ref={(el) => {
+              categoryRefs.current[category] = el;
+            }}
             onClick={() => handleChange(category)}
             className={`flex justify-center items-center cursor-pointer px-4 py-2 rounded-full text-sm font-medium uppercase transition-all duration-200 shadow-sm ${
               category === selectedCategory

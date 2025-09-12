@@ -36,14 +36,15 @@ function ProductCard({ product }: { product: ProductType }) {
       return;
     }
 
-    await addToCart(userId, {
-      productId: product.id,
-      title: product.title,
-      price: product.price,
-      quantity,
-      image: product.images[0],
-      discountPercentage: product.discountPercentage,
-    });
+   await addToCart(userId, {
+  productId: String(product.id),
+  title: product.title,
+  price: product.price,
+  quantity,
+  image: product.images[0],
+  discountPercentage: product.discountPercentage,
+});
+
 
     toast.success(`${quantity} item(s) added to cart`);
   } catch (error) {

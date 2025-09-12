@@ -31,6 +31,8 @@ type DummyJSONProduct = {
   rating: number;
 };
 
+
+
 // Transform DummyJSON -> ProductType
 const transformProducts = (apiProducts: DummyJSONProduct[]): ProductType[] => {
   return apiProducts.map((p) => {
@@ -93,9 +95,9 @@ const ProductList = ({
         } else if (sort === "desc") {
           sortedProducts.sort((a, b) => b.price - a.price);
         } else if (sort === "newest") {
-          sortedProducts.sort((a, b) => b.id - a.id);
+          sortedProducts.sort((a, b) => Number(b.id) - Number(a.id));
         } else if (sort === "oldest") {
-          sortedProducts.sort((a, b) => a.id - b.id);
+          sortedProducts.sort((a, b) => Number(a.id) - Number(b.id));
         }
 
         setProducts(sortedProducts);
@@ -113,7 +115,7 @@ const fetchAddresses = async () => {
   const token = sessionStorage.getItem("accessToken");
 
   try {
-    const data = await apiGet<any[]>("/api/users/address", token);
+    const data = await apiGet<any[]>("/api/users/address", token || undefined);
 
     setAddresses(data || []);
     localStorage.setItem("addresses", JSON.stringify(data || []));

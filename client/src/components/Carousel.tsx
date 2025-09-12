@@ -40,10 +40,14 @@ const Carousel: React.FC<CarouselProps> = ({
   };
 
   // Reset the auto slide on interaction
-  useEffect(() => {
-    resetAutoSlide();
-    return () => timeoutRef.current && clearTimeout(timeoutRef.current);
-  }, [currentIndex]);
+ useEffect(() => {
+  resetAutoSlide();
+  return () => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
+  };
+}, [currentIndex]);
 
   return (
    <div className="relative w-full overflow-hidden rounded-xl shadow-md h-[200px] md:h-[400px] mt-4">

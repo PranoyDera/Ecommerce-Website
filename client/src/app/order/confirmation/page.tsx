@@ -17,10 +17,6 @@ export default function OrderConfirmation() {
   const router = useRouter();
   const { fetchOrders } = useOrders();
   const { cart, setCart, fetchCart, buyNowItems, setBuyNowItems } = useCart();
-
-  const userId =
-    typeof window !== "undefined" ? localStorage.getItem("userId") : null;
-
   const [orderTotal, setOrderTotal] = useState<string>("0");
   const [loading, setLoading] = useState(true);
 
@@ -29,9 +25,18 @@ export default function OrderConfirmation() {
   const [selectedAddress, setSelectedAddress] = useState<any>(null);
   const [paymentMethod, setPaymentMethod] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+ const [userId, setUserId] = useState<string | null>(null);
+const [paymentStatus, setPaymentStatus] = useState<string | null>(null);
+const [checkoutMode, setCheckoutMode] = useState<string | null>(null);
 
-  const paymentStatus = localStorage.getItem("paymentStatus");
-  const checkoutMode = localStorage.getItem("checkoutMode"); // "cart" | "buyNow"
+useEffect(() => {
+  if (typeof window === "undefined") return;
+
+  setUserId(localStorage.getItem("userId"));
+  setPaymentStatus(localStorage.getItem("paymentStatus"));
+  setCheckoutMode(localStorage.getItem("checkoutMode"));
+}, []);
+
 
   // ✅ Load user, address, payment
   useEffect(() => {

@@ -1,4 +1,4 @@
-import { cartStoreStateActionType, cartStoreStateType } from '@/type';
+import { cartItemType, cartStoreStateActionType, cartStoreStateType } from '@/type';
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 
@@ -33,18 +33,19 @@ const useCartStore = create<cartStoreStateType & cartStoreStateActionType>()(
         }),
 
       // ✅ Remove product
-      removeFromCart: (id) =>
-        set((state) => ({
-          cart: state.cart.filter((p) => p.id !== id),
-        })),
+  removeFromCart: (product: cartItemType) =>
+  set((state) => ({
+    cart: state.cart.filter((p) => p.id !== product.id),
+  })),
+
 
       // ✅ Update quantity directly
-      updateQuantity: (id, quantity) =>
-        set((state) => ({
-          cart: state.cart.map((p) =>
-            p.id === id ? { ...p, quantity } : p
-          ),
-        })),
+      updateQuantity: (id: string | number, quantity: number) =>
+  set((state) => ({
+    cart: state.cart.map((p) =>
+      p.id === id ? { ...p, quantity } : p
+    ),
+  })),
 
       clearCart: () => set({ cart: [] }),
     }),

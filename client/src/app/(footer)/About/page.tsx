@@ -48,7 +48,7 @@ const AboutPage = () => {
         <div className="p-2">
           <h2 className="text-2xl font-bold text-gray-900 mb-4">Who We Are</h2>
           <p className="text-gray-600 mb-4 leading-relaxed">
-            We’re a passionate team of innovators, creators, and problem-solvers
+            We're a passionate team of innovators, creators, and problem-solvers
             committed to making online shopping easier, safer, and more
             personalized. From carefully curating our product collections to
             offering seamless delivery and customer support, we put you, the
