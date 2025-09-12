@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import ClientLayout from "./ClientLayout";
+import ClientLayout from "./context/ClientLayout";
 import { CheckoutProvider } from "./context/checkoutContext";
 import { Toaster } from "sonner";
 import { OrderProvider } from "./context/orderContext";

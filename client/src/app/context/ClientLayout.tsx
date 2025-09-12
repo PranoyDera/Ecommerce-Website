@@ -2,10 +2,10 @@
 
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect } from "react";
-import Navbar from "../components/Navbar";
-import Footer from "../components/Footer";
+import Navbar from "../../components/Navbar";
+import Footer from "../../components/Footer";
 import { ToastContainer } from "react-toastify";
-import { apiGet } from "./utils/api";
+import { apiGet } from "../utils/api";
 
 export default function ClientLayout({
   children,
