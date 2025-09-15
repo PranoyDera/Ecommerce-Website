@@ -1,15 +1,20 @@
-import { Resend } from "resend";
+import SibApiV3Sdk from "@sendinblue/client";
 
-const resend = new Resend("re_cm57XCi7_2ijvToDFjQeF7fVZy4Gm6Bvp");
+const brevo = new SibApiV3Sdk.TransactionalEmailsApi();
+brevo.setApiKey(
+  SibApiV3Sdk.TransactionalEmailsApiApiKeys.apiKey,
+  process.env.BREVO_API_KEY
+);
 
 export const sendEmail = async (to, subject, text) => {
   try {
-    await resend.emails.send({
-      from: "Procart <onboarding@resend.dev>",
-      to,
+    await brevo.sendTransacEmail({
+      sender: { name: "Procart", email: "pranoystrange@gmail.com" }, // 👈 verified Gmail
+      to: [{ email: to }],
       subject,
-      text,
+      textContent: text,
     });
+    console.log("✅ Email sent successfully!");
   } catch (error) {
     console.error("❌ Error sending email:", error);
     throw new Error("Email not sent");
