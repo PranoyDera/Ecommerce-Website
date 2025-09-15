@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "react-toastify";
 import AuthForm from "../../components/AuthForm";
 import { useEffect, useState } from "react";
-import { apiPost } from "../utils/api"; // ✅ Use your API helper
+import { apiPost } from "../utils/api"; 
 
 export default function VerifyOtpPage() {
   const router = useRouter();
@@ -28,7 +28,7 @@ export default function VerifyOtpPage() {
     setLoading(true);
     try {
       await apiPost("/api/auth/verify-otp", { email, otp: form.otp });
-      toast.success("✅ OTP Verified! You can now log in.");
+      toast.success("OTP Verified! You can now log in.");
       router.push("/login");
     } catch (err: any) {
       toast.error(err.message || "Invalid or expired OTP.");

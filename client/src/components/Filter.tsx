@@ -15,7 +15,7 @@ function Filter() {
   };
 
   return (
-    <div className="flex items-center justify-end gap-2 text-sm text-gray-500 my-6">
+    <div className="flex items-center justify-center gap-2 text-sm text-gray-500 my-6">
       <span className="">Sort by:</span>
      <Select
         onValueChange={handleFilter}

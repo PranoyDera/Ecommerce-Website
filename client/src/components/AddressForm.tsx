@@ -203,109 +203,110 @@ useEffect(() => {
   };
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      className={`${width} mx-auto md:p-6 p-4 bg-white shadow-md rounded-2xl space-y-4 text-xs md:text-sm`}
+   <form
+  onSubmit={handleSubmit}
+  className={`${width} mx-auto p-4 md:p-6 bg-white shadow-md rounded-2xl space-y-4 text-xs md:text-sm`}
+>
+  {/* Address Field */}
+  <div className="flex flex-col gap-2">
+    <h2 className="font-semibold text-xs md:text-sm">Address</h2>
+    <input
+      type="text"
+      placeholder="Enter Address"
+      value={address}
+      onChange={(e) => setAddress(e.target.value)}
+      className="w-full border px-3 py-2 border-gray-300 rounded-xl focus:ring-1 focus:ring-purple-600 focus:outline-none"
+      required
+    />
+  </div>
+
+  {/* Country + State */}
+  <div className="flex flex-col md:flex-row gap-2">
+    <div className="flex flex-col gap-2 md:w-1/2 w-full">
+      <h2 className="font-semibold text-xs md:text-sm">Country</h2>
+      <Select
+        value={selectedCountry ? { label: selectedCountry, value: selectedCountry } : null}
+        onChange={(option) => setSelectedCountry(option?.value || "")}
+        options={countries.map((c) => ({ label: c.country, value: c.country }))}
+        placeholder="Select Country"
+        styles={selectStyles}
+        isSearchable
+      />
+    </div>
+
+    <div className="flex flex-col gap-2 md:w-1/2 w-full">
+      <h2 className="font-semibold text-xs md:text-sm">State</h2>
+      <Select
+        value={selectedState ? { label: selectedState, value: selectedState } : null}
+        onChange={(option) => setSelectedState(option?.value || "")}
+        options={states.map((s) => ({ label: s.name, value: s.name }))}
+        placeholder="Select State"
+        styles={selectStyles}
+        isSearchable
+        isDisabled={!selectedCountry}
+      />
+    </div>
+  </div>
+
+  {/* City + Zip */}
+  <div className="flex flex-col md:flex-row gap-2">
+    <div className="flex flex-col gap-2 md:w-1/2 w-full">
+      <h2 className="font-semibold text-xs md:text-sm">City</h2>
+      <Select
+        value={selectedCity ? { label: selectedCity, value: selectedCity } : null}
+        onChange={(option) => setSelectedCity(option?.value || "")}
+        options={cities.map((city) => ({ label: city, value: city }))}
+        placeholder="Select City"
+        styles={selectStyles}
+        isSearchable
+        isDisabled={!selectedState}
+      />
+    </div>
+
+    <div className="flex flex-col gap-2 md:w-1/2 w-full">
+      <h2 className="font-semibold text-xs md:text-sm">Zip Code</h2>
+      <input
+        type="text"
+        placeholder="Enter Zipcode"
+        value={zipCode}
+        onChange={(e) => setZipCode(e.target.value)}
+        className="w-full border border-gray-300 px-3 py-2 rounded-xl focus:ring-1 focus:ring-purple-600 focus:outline-none"
+        required
+      />
+    </div>
+  </div>
+
+  {/* Landmark */}
+  <div className="flex flex-col gap-2">
+    <h2 className="font-semibold text-xs md:text-sm">Nearest Landmark</h2>
+    <input
+      type="text"
+      placeholder="Enter Nearest Landmark"
+      value={landmark}
+      onChange={(e) => setLandmark(e.target.value)}
+      className="w-full border px-3 py-2 border-gray-300 rounded-xl focus:ring-1 focus:ring-purple-600 focus:outline-none"
+      required
+    />
+  </div>
+
+  {/* Buttons */}
+  <div className="flex flex-col md:flex-row gap-2">
+    <button
+      type="submit"
+      className="w-full md:w-1/2 bg-purple-700 text-white py-2 rounded-xl hover:bg-purple-900 transition duration-300"
     >
-      {/* Address Field */}
-      <div className="flex flex-col gap-2">
-        <h2 className="font-semibold">Address</h2>
-        <input
-          type="text"
-          placeholder="Enter Address"
-          value={address}
-          onChange={(e) => setAddress(e.target.value)}
-          className="w-full border px-3 py-2 border-gray-300 rounded-xl focus:ring-1 focus:ring-purple-600 focus:outline-none"
-          required
-        />
-      </div>
+      {isEdit ? "Update Address" : "Save Address"}
+    </button>
+    <button
+      type="button"
+      onClick={onCancel}
+      className="w-full md:w-1/2 bg-gray-800 text-white py-2 rounded-xl hover:bg-gray-900 transition duration-300"
+    >
+      Cancel
+    </button>
+  </div>
+</form>
 
-      {/* Country + State */}
-      <div className="flex gap-2 flex-1">
-        <div className="flex flex-col gap-2 w-1/2">
-          <h2 className="font-semibold">Country</h2>
-          <Select
-            value={selectedCountry ? { label: selectedCountry, value: selectedCountry } : null}
-            onChange={(option) => setSelectedCountry(option?.value || "")}
-            options={countries.map((c) => ({ label: c.country, value: c.country }))}
-            placeholder="Select Country"
-            styles={selectStyles}
-            isSearchable
-          />
-        </div>
-
-        <div className="flex flex-col gap-2 w-1/2">
-          <h2 className="font-semibold">States</h2>
-          <Select
-            value={selectedState ? { label: selectedState, value: selectedState } : null}
-            onChange={(option) => setSelectedState(option?.value || "")}
-            options={states.map((s) => ({ label: s.name, value: s.name }))}
-            placeholder="Select State"
-            styles={selectStyles}
-            isSearchable
-            isDisabled={!selectedCountry}
-          />
-        </div>
-      </div>
-
-      {/* City + Zip */}
-      <div className="flex gap-2 flex-1">
-        <div className="flex flex-col gap-2 w-1/2">
-          <h2 className="font-semibold">City</h2>
-          <Select
-            value={selectedCity ? { label: selectedCity, value: selectedCity } : null}
-            onChange={(option) => setSelectedCity(option?.value || "")}
-            options={cities.map((city) => ({ label: city, value: city }))}
-            placeholder="Select City"
-            styles={selectStyles}
-            isSearchable
-            isDisabled={!selectedState}
-          />
-        </div>
-
-        <div className="flex flex-col gap-2 w-1/2">
-          <h2 className="font-semibold">Zip Code</h2>
-          <input
-            type="text"
-            placeholder="Enter Zipcode"
-            value={zipCode}
-            onChange={(e) => setZipCode(e.target.value)}
-            className="w-full border border-gray-300 px-3 py-2 rounded-xl focus:ring-1 focus:ring-purple-600 focus:outline-none"
-            required
-          />
-        </div>
-      </div>
-
-      {/* Landmark */}
-      <div className="flex flex-col gap-2">
-        <h2 className="font-semibold">Nearest Landmark</h2>
-        <input
-          type="text"
-          placeholder="Enter Nearest Landmark"
-          value={landmark}
-          onChange={(e) => setLandmark(e.target.value)}
-          className="w-full border px-3 py-2 border-gray-300 rounded-xl focus:ring-1 focus:ring-purple-600 focus:outline-none"
-          required
-        />
-      </div>
-
-      {/* Buttons */}
-      <div className="flex gap-4">
-        <button
-          type="submit"
-          className="w-full bg-purple-700 text-white py-2 rounded-xl hover:bg-purple-900 transition duration-300 mt-2"
-        >
-          {isEdit ? "Update Address" : "Save Address"}
-        </button>
-        <button
-          type="button"
-          onClick={onCancel}
-          className="w-full bg-gray-800 text-white py-2 rounded-xl hover:bg-gray-900 transition duration-300 mt-2"
-        >
-          Cancel
-        </button>
-      </div>
-    </form>
   );
 };
 

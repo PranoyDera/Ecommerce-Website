@@ -177,7 +177,6 @@ useEffect(() => {
             setOrderTotal("0");
             setIsModalOpen(true);
             fetchOrders();
-            router.push("/");
           },
           () => toast.error("❌ Payment failed!")
         );

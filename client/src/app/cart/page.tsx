@@ -267,7 +267,7 @@ export default function CartPage() {
               </div>
             ) : (
               <AddressForm
-                width="w-[40vw]"
+                width="md:w-[40vw] w-[60vw]"
                 onSuccess={(newAddress) => {
                   localStorage.setItem(
                     "selectedAddress",
