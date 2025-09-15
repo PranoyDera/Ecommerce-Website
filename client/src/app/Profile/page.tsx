@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { Settings, Package, MapPin, Lock, LogOut, ChevronRight, Trash2, ArrowLeft } from "lucide-react";
-import { toast } from "react-toastify";
+import { toast } from "sonner";
 import ConfirmModal from "../../components/ConfirmModal";
 import { apiDelete, apiGet } from "../utils/api";
 

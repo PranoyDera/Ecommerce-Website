@@ -19,7 +19,8 @@ interface AuthFormProps {
   onSubmit: (form: Record<string, string>) => Promise<void>;
   submitLabel: string;
   footerText?: string; // optional
-  footerLink?: { href: string; label: string }; // optional
+  footerLink?: { href: string; label: string }; //optional 
+  disable?: boolean// optional
 
   // New props for secondary button
   secondaryLabel?: string;
