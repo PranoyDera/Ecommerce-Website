@@ -2,7 +2,7 @@
 export const dynamic = "force-dynamic";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { toast } from "react-toastify";
+import { toast } from "sonner";
 import AuthForm from "../../components/AuthForm";
 import { useEffect, useState } from "react";
 import { apiPost } from "../utils/api"; 
