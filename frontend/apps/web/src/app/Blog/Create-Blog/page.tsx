@@ -7,7 +7,8 @@ import { Button } from "@/components/ui/stateful-button";
 
 const CreateBlog = () => {
   const [blogName, setBlogName] = useState("");
-  const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5000";
+ // const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5000";
+ const API_BASE_URL =  "http://localhost:5000";
   const [categoryList, setCategoryList] = useState("");
   const [content, setContent] = useState("");
   const [preview, setPreview] = useState<string | null>(null);

@@ -20,10 +20,10 @@ const userSchema = new mongoose.Schema(
     DateOfBirth: { type: Date }, 
     addresses: [addressSchema],
 
-    // 2FA fields
-    otp: { type: String }, // Store OTP
-    otpExpiry: { type: Date }, // Expiry time for OTP
-    isVerified: { type: Boolean, default: false }, // Optional: track email verification
+    
+    otp: { type: String }, 
+    otpExpiry: { type: Date }, 
+    isVerified: { type: Boolean, default: false }, 
   },
   { timestamps: true }
 );
