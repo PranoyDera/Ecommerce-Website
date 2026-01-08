@@ -12,15 +12,15 @@ export default function LoginPage() {
 
   const handleLogin = async (form: Record<string, string>) => {
     try {
-      setLoading(true); // start loader
+      setLoading(true);
 
       const data = await apiPost<{
         token:string;
         message: string;
+        admin: any;
       }>("/api/admin/login", form);
       if (data.token) sessionStorage.setItem("token", data.token);
       if (data.admin.id) sessionStorage.setItem("adminId", data.admin.id);
-
       localStorage.setItem("name", data.admin.name);
       localStorage.setItem("email", data.admin.email);
       localStorage.setItem("adminId", data.admin.id);
@@ -30,10 +30,9 @@ export default function LoginPage() {
       toast(data.message);
       router.replace("/");
     } catch (err: any) {
-      console.error("Login failed:", err);
-      toast(err.message || "Login failed");
+      toast(err.message);
     } finally {
-      setLoading(false); // stop loader
+      setLoading(false);
     }
   };
   return (

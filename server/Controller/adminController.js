@@ -1,6 +1,7 @@
 import Admin from "../Models/Admin.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+import User from "../Models/User.js";
 
 export const registerAdmin = async (req, res) => {
   try {
@@ -112,5 +113,20 @@ export const loginAdmin = async (req, res) => {
       success: false,
       message: "Server error",
     });
+  }
+};
+export const getAllUsers = async (req, res) => {
+  try {
+    const users = await User.find()
+      .select("-password -otp -otpExpiry")
+      .sort({ createdAt: -1 });
+
+    res.status(200).json({
+      totalUsers: users.length,
+      users,
+    });
+  } catch (err) {
+    console.error("Fetch users error:", err);
+    res.status(500).json({ message: "Server error" });
   }
 };
