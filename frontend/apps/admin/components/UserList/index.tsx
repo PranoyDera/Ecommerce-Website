@@ -9,13 +9,49 @@ import { Button } from "../ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import ConfirmationModal from "../ui/ConfirmationModal";
+import { Spinner } from "@/components/ui/spinner";
+import UserDetailModal from "../ui/Card/UserDetailCard";
+import { useUsers } from "@/hooks/useUsers";
 
-type User = {
-  _id: string | null;
+
+type OrderItem = {
+  productId: string;
+  title: string;
+  quantity: number;
+  price: number;
+  image?: string;
+};
+
+type Order = {
+  _id: string;
+  totalAmount: number;
+  paymentStatus: "Pending" | "Paid" | "shipped" | "delivered";
+  paymentMethod: string;
+  createdAt: string;
+  items: OrderItem[];
+};
+
+type Address = {
+  _id: string;
+  address: string;
+  city: string;
+  state: string;
+  zipCode: string;
+  country: string;
+  landmark?: string;
+};
+
+export type User = {
+  _id: string;
   name: string;
   email: string;
   phone: string;
   gender: string;
+  image?: string;
+  addresses: Address[];
+  orders: Order[];
+  totalOrders: number;
+  totalOrderAmount: number;
 };
 
 export default function UserList() {
@@ -90,11 +126,15 @@ export default function UserList() {
       cell: ({ row }) => (
         <div className="flex gap-6">
           <button
-            onClick={() => console.log(row.original)}
+            onClick={() => {
+              setViewUser(row.original);
+              setViewOpen(true);
+            }}
             className="text-blue-600 hover:underline cursor-pointer"
           >
             View
           </button>
+
           <button
             onClick={() => {
               setSelectedUserId(row.original._id);
@@ -109,44 +149,40 @@ export default function UserList() {
     },
   ];
   const hasFetched = useRef(false);
-  const [users, setUsers] = useState([]);
   const [open, setOpen] = useState(false);
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [viewUser, setViewUser] = useState<any | null>(null);
+  const [viewOpen, setViewOpen] = useState(false);
+  const { users, loading: pageLoading, fetchUsers } = useUsers();
 
-  const fetchUsers = async () => {
-    const token = localStorage.getItem("token");
-    const res = await apiGet("/api/admin/users", token || "");
-    setUsers(res?.users);
-  };
 
   const handleConfirmDelete = async () => {
-  if (!selectedUserId) return;
+    if (!selectedUserId) return;
 
-  try {
-    setLoading(true);
-    const token = localStorage.getItem("token");
+    try {
+      setLoading(true);
+      const token = localStorage.getItem("token");
 
-    const res = await apiDelete(
-      `/api/admin/delete/${selectedUserId}`,
-      token || ""
-    );
+      const res = await apiDelete(
+        `/api/admin/delete/${selectedUserId}`,
+        token || ""
+      );
 
-    if (res) {
-      toast.success("User deleted successfully");
-      fetchUsers();
-    } else {
-      toast.error("Something went wrong");
+      if (res) {
+        toast.success(res.message);
+        fetchUsers();
+      } else {
+        toast.error("Something went wrong");
+      }
+    } catch (err) {
+      toast.error("Failed to delete user");
+    } finally {
+      setLoading(false);
+      setOpen(false);
+      setSelectedUserId(null);
     }
-  } catch (err) {
-    toast.error("Failed to delete user");
-  } finally {
-    setLoading(false);
-    setOpen(false);
-    setSelectedUserId(null);
-  }
-};
-
+  };
 
   useEffect(() => {
     if (hasFetched.current) return;
@@ -157,7 +193,13 @@ export default function UserList() {
   return (
     <div className="bg-neutral-200 rounded-md p-4 gap-4 flex flex-col">
       <p className="text-xl font-bold">User list</p>
-      <CustomTable data={users} columns={columns} />
+      {pageLoading ? (
+        <div className="flex flex-1 items-center justify-center">
+          <Spinner className="size-6 text-blue-500" />
+        </div>
+      ) : (
+        <CustomTable data={users} columns={columns} />
+      )}
       <ConfirmationModal
         open={open}
         onClose={() => setOpen(false)}
@@ -167,6 +209,11 @@ export default function UserList() {
         confirmText="Delete"
         variant="danger"
         loading={loading}
+      />
+      <UserDetailModal
+        open={viewOpen}
+        onClose={() => setViewOpen(false)}
+        user={viewUser}
       />
     </div>
   );

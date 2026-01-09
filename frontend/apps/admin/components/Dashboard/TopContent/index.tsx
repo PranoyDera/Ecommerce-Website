@@ -2,16 +2,25 @@
 
 import Card from "@/components/ui/Card/Card";
 import { DollarSign, Package, ShoppingCart, UserPlus } from "lucide-react";
+import Image from "next/image";
 
-export default function TopContent() {
+interface TopContentProps {
+  totalOrders: number;
+  totalRevenue: number;
+  totalUser:number;
+  totalProductsPurchased:number;
+}
+export default function TopContent(
+  { totalOrders,totalRevenue,totalUser,totalProductsPurchased }: TopContentProps,
+) {
   return (
-    <div className="bg-neutral-100 p-4 rounded-md flex flex-col gap-4">
+    <div className="p-4 rounded-md flex flex-col gap-4">
       <p className="text-xl font-bold">Overview</p>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <Card
           icon={<DollarSign size={18} />}
-          title="Total Sales"
-          value="$5k"
+          title="Total Transaction"
+          value={totalRevenue}
           change="+10% from yesterday"
           changeType="positive"
         />
@@ -19,7 +28,7 @@ export default function TopContent() {
         <Card
           icon={<ShoppingCart size={18} />}
           title="Total Orders"
-          value="500"
+          value={totalOrders}
           change="+8% from yesterday"
           changeType="positive"
         />
@@ -27,15 +36,15 @@ export default function TopContent() {
         <Card
           icon={<Package size={18} />}
           title="Product Sold"
-          value="9"
+          value={totalProductsPurchased}
           change="-2% from yesterday"
           changeType="negative"
         />
 
         <Card
           icon={<UserPlus size={18} />}
-          title="New Customers"
-          value="12"
+          title="Customer count"
+          value={totalUser}
           change="+3% from yesterday"
           changeType="positive"
         />

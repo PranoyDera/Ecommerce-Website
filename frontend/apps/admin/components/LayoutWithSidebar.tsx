@@ -83,7 +83,7 @@ export function LayoutWithSidebar({
 
       {/* Main Content */}
       <main className="flex-1 overflow-y-auto">
-        <div className="flex h-full w-full flex-1 flex-col gap-2 border border-neutral-200 bg-white p-2 md:p-4 dark:border-neutral-700 dark:bg-neutral-900">
+        <div className="flex w-full flex-1 flex-col gap-2 border border-neutral-200 bg-white p-2 md:p-4 dark:border-neutral-700 dark:bg-neutral-900">
           {tabs[activeTab]}
         </div>
       </main>
@@ -97,7 +97,6 @@ export const Logo = () => {
       href="/"
       className="relative z-20 flex items-center space-x-2 py-1 text-sm font-normal text-black"
     >
-      <Handbag />
       <motion.span
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -114,7 +113,6 @@ export const LogoIcon = () => {
       href="/"
       className="relative z-20 flex items-center space-x-2 py-1 text-sm font-normal text-black"
     >
-      <Handbag />
     </a>
   );
 };
