@@ -115,6 +115,7 @@ export const loginAdmin = async (req, res) => {
     });
   }
 };
+
 export const getAllUsers = async (req, res) => {
   try {
     const users = await User.find()
@@ -128,5 +129,67 @@ export const getAllUsers = async (req, res) => {
   } catch (err) {
     console.error("Fetch users error:", err);
     res.status(500).json({ message: "Server error" });
+  }
+};
+
+export const deleteUser = async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    if (!userId) {
+      return res.status(400).json({
+        success: false,
+        message: "User ID is required",
+      });
+    }
+
+    const user = await User.findByIdAndDelete(userId);
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "User deleted successfully",
+    });
+  } catch (error) {
+    console.error("Delete user error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server error",
+    });
+  }
+};
+
+export const bulkDeleteUsers = async (req, res) => {
+  try {
+    const { userIds } = req.body;
+
+    if (!Array.isArray(userIds) || userIds.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "userIds must be a non-empty array",
+      });
+    }
+
+    const result = await User.deleteMany({
+      _id: { $in: userIds },
+    });
+
+    res.status(200).json({
+      success: true,
+      message: "Users deleted successfully",
+      deletedCount: result.deletedCount,
+    });
+  } catch (error) {
+    console.error("Bulk delete users error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server error",
+    });
   }
 };

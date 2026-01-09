@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 
 type AdminProfileProps = {
   open: boolean;
-  name: string;
+  name: string | null;
   imageUrl: string;
   onClick: () => void;
 };

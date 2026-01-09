@@ -1,15 +1,17 @@
 "use client";
 
-import { apiGet } from "@/app/utils/api";
+import { apiDelete, apiGet } from "@/app/utils/api";
 import { useEffect, useRef, useState } from "react";
 import { CustomTable } from "../ui/CustomTable";
 import { ColumnDef } from "@tanstack/react-table";
 import { ArrowUpDown } from "lucide-react";
 import { Button } from "../ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import { toast } from "sonner";
+import ConfirmationModal from "../ui/ConfirmationModal";
 
 type User = {
-  id: string;
+  _id: string | null;
   name: string;
   email: string;
   phone: string;
@@ -89,13 +91,16 @@ export default function UserList() {
         <div className="flex gap-6">
           <button
             onClick={() => console.log(row.original)}
-            className="text-blue-600 hover:underline"
+            className="text-blue-600 hover:underline cursor-pointer"
           >
             View
           </button>
           <button
-            onClick={() => console.log(row.original)}
-            className="text-red-600 hover:underline"
+            onClick={() => {
+              setSelectedUserId(row.original._id);
+              setOpen(true);
+            }}
+            className="text-red-600 hover:underline cursor-pointer"
           >
             Delete
           </button>
@@ -105,12 +110,43 @@ export default function UserList() {
   ];
   const hasFetched = useRef(false);
   const [users, setUsers] = useState([]);
+  const [open, setOpen] = useState(false);
+  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
   const fetchUsers = async () => {
     const token = localStorage.getItem("token");
     const res = await apiGet("/api/admin/users", token || "");
     setUsers(res?.users);
   };
+
+  const handleConfirmDelete = async () => {
+  if (!selectedUserId) return;
+
+  try {
+    setLoading(true);
+    const token = localStorage.getItem("token");
+
+    const res = await apiDelete(
+      `/api/admin/delete/${selectedUserId}`,
+      token || ""
+    );
+
+    if (res) {
+      toast.success("User deleted successfully");
+      fetchUsers();
+    } else {
+      toast.error("Something went wrong");
+    }
+  } catch (err) {
+    toast.error("Failed to delete user");
+  } finally {
+    setLoading(false);
+    setOpen(false);
+    setSelectedUserId(null);
+  }
+};
+
 
   useEffect(() => {
     if (hasFetched.current) return;
@@ -122,6 +158,16 @@ export default function UserList() {
     <div className="bg-neutral-200 rounded-md p-4 gap-4 flex flex-col">
       <p className="text-xl font-bold">User list</p>
       <CustomTable data={users} columns={columns} />
+      <ConfirmationModal
+        open={open}
+        onClose={() => setOpen(false)}
+        onConfirm={handleConfirmDelete}
+        title="Delete User"
+        description="Are you sure you want to delete this user? This action cannot be undone."
+        confirmText="Delete"
+        variant="danger"
+        loading={loading}
+      />
     </div>
   );
 }
