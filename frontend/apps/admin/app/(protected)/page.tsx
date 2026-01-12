@@ -6,6 +6,7 @@ import Profile from "@/components/Profile";
 import ProfilePage from "@/components/Profile/ProfilePage";
 import Settings from "@/components/Settings";
 import UserList from "@/components/UserList";
+import { useRouter } from "next/navigation";
 import {
   IconBrandTabler,
   IconSettings,
@@ -14,9 +15,12 @@ import {
 
 export default function Home() {
 
+
+  const router = useRouter();
   const handleLogout = () => {
-  sessionStorage.removeItem("token"); // or localStorage
-  window.location.href = "/";
+  sessionStorage.removeItem("token");
+  localStorage.clear();
+  router.replace("/login");
 };
 
 

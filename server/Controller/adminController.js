@@ -96,6 +96,9 @@ export const loginAdmin = async (req, res) => {
         id: admin._id,
         name: admin.name,
         email: admin.email,
+        phone: admin.phone,
+        gender: admin.gender,
+        imageUrl: admin.image,
       },
     });
   } catch (error) {
@@ -106,6 +109,97 @@ export const loginAdmin = async (req, res) => {
     });
   }
 };
+
+export const updateAdminProfile = async (req, res) => {
+  try {
+    const adminId = req.admin._id; // coming from JWT middleware
+    const {
+      name,
+      email,
+      phone,
+      gender,
+      image,
+      DateOfBirth,
+      currentPassword,
+      newPassword,
+    } = req.body;
+
+    const admin = await Admin.findById(adminId);
+    if (!admin) {
+      return res.status(404).json({
+        success: false,
+        message: "Admin not found",
+      });
+    }
+
+    /* 🔐 If changing password, validate old password */
+    if (newPassword) {
+      if (!currentPassword) {
+        return res.status(400).json({
+          success: false,
+          message: "Current password is required",
+        });
+      }
+
+      const isMatch = await bcrypt.compare(
+        currentPassword,
+        admin.password
+      );
+
+      if (!isMatch) {
+        return res.status(401).json({
+          success: false,
+          message: "Current password is incorrect",
+        });
+      }
+
+      const salt = await bcrypt.genSalt(10);
+      admin.password = await bcrypt.hash(newPassword, salt);
+    }
+
+    /* 📧 If email is changing, ensure uniqueness */
+    if (email && email !== admin.email) {
+      const emailExists = await Admin.findOne({ email });
+      if (emailExists) {
+        return res.status(409).json({
+          success: false,
+          message: "Email already in use",
+        });
+      }
+      admin.email = email;
+    }
+
+    /* 🧾 Update fields only if provided */
+    if (name) admin.name = name;
+    if (phone) admin.phone = phone;
+    if (gender) admin.gender = gender;
+    if (image) admin.image = image;
+    if (DateOfBirth) admin.DateOfBirth = DateOfBirth;
+
+    await admin.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Profile updated successfully",
+      admin: {
+        id: admin._id,
+        name: admin.name,
+        email: admin.email,
+        phone: admin.phone,
+        gender: admin.gender,
+        image: admin.image,
+        DateOfBirth: admin.DateOfBirth,
+      },
+    });
+  } catch (error) {
+    console.error("Update Admin Error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server error",
+    });
+  }
+};
+
 
 export const getAllUsers = async (req, res) => {
   try {
@@ -217,7 +311,7 @@ export const getAllOrders = async (req, res) => {
   try {
     const orders = await Order.aggregate([
       {
-        $unwind: "$items", // break items array
+        $unwind: "$items",
       },
       {
         $group: {
@@ -236,7 +330,6 @@ export const getAllOrders = async (req, res) => {
       },
     ]);
 
-    // 🔹 Overall stats
     const totalOrders = orders.length;
 
     const totalRevenue = Number(
@@ -248,7 +341,6 @@ export const getAllOrders = async (req, res) => {
       0
     );
 
-    // 🔹 Populate user info
     await Order.populate(orders, {
       path: "userId",
       select: "name email phone",
@@ -270,3 +362,43 @@ export const getAllOrders = async (req, res) => {
   }
 };
 
+export const getTopPurchasedProducts = async (req, res) => {
+  try {
+    const topProducts = await Order.aggregate([
+      {
+        $match: {
+          paymentStatus: { $in: ["Paid", "shipped", "delivered"] },
+        },
+      },
+      {
+        $unwind: "$items",
+      },
+      {
+        $group: {
+          _id: "$items.productId",
+          totalSold: { $sum: "$items.quantity" },
+          title: { $first: "$items.title" },
+          price: { $first: "$items.price" },
+          image: { $first: "$items.image" },
+        },
+      },
+      {
+        $sort: { totalSold: -1 },
+      },
+      {
+        $limit: 5,
+      },
+    ]);
+
+    res.status(200).json({
+      success: true,
+      data: topProducts,
+    });
+  } catch (error) {
+    console.error("Top Products Error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch top products",
+    });
+  }
+};

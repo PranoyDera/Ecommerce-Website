@@ -13,13 +13,13 @@ const Profile = ({ open, name, imageUrl, onClick }: AdminProfileProps) => {
   return (
     <button
       onClick={onClick}
-      className="flex w-full items-center gap-3 rounded-md p-2 hover:bg-neutral-200 dark:hover:bg-neutral-700 transition"
+      className="flex w-full items-center gap-3 rounded-md pl-2 hover:bg-neutral-200 dark:hover:bg-neutral-700 transition"
     >
       {/* Profile Image */}
       <img
         src={imageUrl}
         alt="Admin Profile"
-        className="h-12 w-12 rounded-full object-cover"
+        className="h-10 w-10 rounded-full object-cover"
       />
 
       {/* Text only when sidebar is open */}

@@ -52,6 +52,7 @@ export type User = {
   orders: Order[];
   totalOrders: number;
   totalOrderAmount: number;
+  DateOfBirth: string;
 };
 
 export default function UserList() {
@@ -152,10 +153,9 @@ export default function UserList() {
   const [open, setOpen] = useState(false);
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [viewUser, setViewUser] = useState<any | null>(null);
+  const [viewUser, setViewUser] = useState<any | null>();
   const [viewOpen, setViewOpen] = useState(false);
   const { users, loading: pageLoading, fetchUsers } = useUsers();
-
 
   const handleConfirmDelete = async () => {
     if (!selectedUserId) return;

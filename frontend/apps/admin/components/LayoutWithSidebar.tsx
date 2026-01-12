@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 import { Handbag } from "lucide-react";
 import Profile from "./Profile";
 import { IconLogout } from "@tabler/icons-react";
+import ConfirmationModal from "./ui/ConfirmationModal";
 
 type LinkItem = {
   label: string;
@@ -25,8 +26,10 @@ export function LayoutWithSidebar({
   onLogout,
 }: LayoutWithSidebarProps) {
   const [open, setOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState(links[0].key);
+  const [activeTab, setActiveTab] = useState('dashboard');
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
   const adminName = localStorage.getItem("name");
+  const image = localStorage.getItem('image');
 
   return (
     <div
@@ -55,9 +58,9 @@ export function LayoutWithSidebar({
               <div className="flex justify-center items-center w-full">
                 {onLogout && (
                   <button
-                    onClick={onLogout}
+                    onClick={() => setShowLogoutModal(true)}
                     className={cn(
-                      "flex w-full rounded-lg p-2 text-red-600 transition hover:bg-red-50 dark:hover:bg-red-900/20",
+                      "cursor-pointer flex w-full rounded-lg py-2 pl-1 text-red-600 transition hover:bg-red-50 dark:hover:bg-red-900/20",
                       open ? "justify-start gap-3" : "justify-center"
                     )}
                   >
@@ -74,7 +77,7 @@ export function LayoutWithSidebar({
             <Profile
               open={open}
               name={adminName}
-              imageUrl="/userImage.png"
+              imageUrl={image?image:'/userImage.png'}
               onClick={() => setActiveTab("profile")}
             />
           </div>
@@ -83,7 +86,19 @@ export function LayoutWithSidebar({
 
       {/* Main Content */}
       <main className="flex-1 overflow-y-auto">
-        <div className="flex w-full flex-1 flex-col gap-2 border border-neutral-200 bg-white p-2 md:p-4 dark:border-neutral-700 dark:bg-neutral-900">
+        <ConfirmationModal
+          open={showLogoutModal}
+          onClose={() => setShowLogoutModal(false)}
+          onConfirm={() => {
+            setShowLogoutModal(false);
+            onLogout?.();
+          }}
+          title="Logout"
+          description="Are you sure you want to logout?"
+          confirmText="Logout"
+          variant="danger"
+        />
+        <div className="flex w-full flex-1 flex-col gap-2 border border-neutral-200 bg-white p-2 md:px-4 dark:border-neutral-700 dark:bg-neutral-900">
           {tabs[activeTab]}
         </div>
       </main>
@@ -112,7 +127,6 @@ export const LogoIcon = () => {
     <a
       href="/"
       className="relative z-20 flex items-center space-x-2 py-1 text-sm font-normal text-black"
-    >
-    </a>
+    ></a>
   );
 };

@@ -24,6 +24,9 @@ export default function LoginPage() {
       localStorage.setItem("name", data.admin.name);
       localStorage.setItem("email", data.admin.email);
       localStorage.setItem("adminId", data.admin.id);
+      localStorage.setItem("gender",data.admin.gender);
+      localStorage.setItem("phone",data.admin.phone);
+      localStorage.setItem("image",data.admin.imageUrl);
 
       const token = sessionStorage.getItem("token") || "";
 

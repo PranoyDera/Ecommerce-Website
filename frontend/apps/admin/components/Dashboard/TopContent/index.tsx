@@ -35,7 +35,7 @@ export default function TopContent(
 
         <Card
           icon={<Package size={18} />}
-          title="Product Sold"
+          title="Products Sold"
           value={totalProductsPurchased}
           change="-2% from yesterday"
           changeType="negative"

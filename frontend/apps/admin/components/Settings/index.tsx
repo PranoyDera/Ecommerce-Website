@@ -1,5 +1,9 @@
 "use client";
 
 export default function Settings() {
-  return <div>Settings</div>;
+  return (
+    <div className="h-full">
+      Settings
+    </div>
+  ) 
 }
