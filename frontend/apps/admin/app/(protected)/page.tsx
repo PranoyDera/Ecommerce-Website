@@ -12,6 +12,8 @@ import {
   IconSettings,
   IconUserBolt,
 } from "@tabler/icons-react";
+import { Package } from "lucide-react";
+import Products from "@/components/Products";
 
 export default function Home() {
 
@@ -39,15 +41,15 @@ export default function Home() {
             icon: <IconUserBolt className="h-5 w-5" />,
           },
           {
-            label: "Settings",
-            key: "settings",
-            icon: <IconSettings className="h-5 w-5" />,
+            label: "Products",
+            key: "products",
+            icon: <Package className="h-5 w-5" />,
           },
         ]}
         tabs={{
           dashboard: <Dashboard />,
           Userlist: <UserList/>,
-          settings: <Settings />,
+          products: <Products />,
           profile:<ProfilePage/>
         }}
         onLogout={handleLogout}

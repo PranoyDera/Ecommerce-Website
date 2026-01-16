@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/stateful-button";
 import { apiGet, apiPut } from "@/app/utils/api";
+import { AUTH } from "@/app/constants/apiUrl";
 
 export default function EditProfilePage() {
   const [formData, setFormData] = useState({
@@ -39,7 +40,7 @@ export default function EditProfilePage() {
         const token = sessionStorage.getItem("accessToken");
         if (!token) return;
 
-        const data = await apiGet<any>("/api/auth/me", token);
+        const data = await apiGet<any>(`${AUTH.ME}`, token);
 
         setFormData({
           fullName: data.name || "",
@@ -88,7 +89,7 @@ export default function EditProfilePage() {
       if (!token) return;
 
       await apiPut(
-        "/api/auth/update",
+        `${AUTH.UPDATE_USER}`,
         {
           name: formData.fullName,
           gender: formData.gender,

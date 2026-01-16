@@ -5,6 +5,7 @@ import BottomContent from "./BottomContent";
 import TopContent from "./TopContent";
 import { apiGet } from "@/app/utils/api";
 import { useUsers } from "@/hooks/useUsers";
+import { ADMIN } from "@/app/constants/apiUrl";
 
 export default function Dashboard(){
   const [totalOrders,setTotalOrders] = useState();
@@ -15,7 +16,7 @@ export default function Dashboard(){
 
   const fetchOrders = async()=>{
     const token = localStorage.getItem("token");
-    const res = await apiGet("/api/admin/orders",token?token:"");
+    const res = await apiGet(`${ADMIN.GET_ALL_ORDERS}`,token?token:"");
     const orderLen = res?.totalOrders
     const revenue = res?.totalRevenue.toFixed(2)
     const totalProducts = res?.totalProductsPurchased
@@ -26,7 +27,7 @@ export default function Dashboard(){
 
   const topProducts = async()=>{
     const token = localStorage.getItem("token");
-    const res = await apiGet("/api/admin/top-products",token?token:"");
+    const res = await apiGet(`${ADMIN.TOP_PRODUCTS}`,token?token:"");
     setTopProductsList(res?.data);
   }
 

@@ -42,13 +42,13 @@ export type cartStoreStateActionType = {
 };
 
 export type ProductType = {
-  id: string | number;
-  title: string; // DummyJSON uses "title"
+  _id: string | number;
+  title: string; 
   description: string;
   price: number;
-  sizes?: string[]; // optional, DummyJSON doesn’t provide this
-  colors?: string[]; // optional, DummyJSON doesn’t provide this
-  images: string[]; // DummyJSON returns array of image URLs
+  sizes?: string[]; 
+  colors?: string[]; 
+  images: string[]; 
   thumbnail: string;
   rating: number;
   discountPercentage: number;

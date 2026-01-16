@@ -1,5 +1,6 @@
 "use client";
 
+import { ADDRESS } from "@/app/constants/apiUrl";
 import { apiGet, apiPost, apiPut } from "@/app/utils/api";
 import React, { useEffect, useState } from "react";
 import Select from "react-select";
@@ -163,9 +164,9 @@ useEffect(() => {
     try {
       let data: any;
       if (isEdit) {
-        data = await apiPut(`/api/users/address/${addressId}`, payload, token);
+        data = await apiPut(`${ADDRESS.ADD_ADDRESS}/${addressId}`, payload, token);
       } else {
-        data = await apiPost(`/api/users/address`, payload, token);
+        data = await apiPost(`${ADDRESS.ADD_ADDRESS}`, payload, token);
       }
 
       const savedAddress: SavedAddress =

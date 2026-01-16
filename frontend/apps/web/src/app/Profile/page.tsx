@@ -7,6 +7,7 @@ import { Settings, Package, MapPin, Lock, LogOut, ChevronRight, Trash2, ArrowLef
 import { toast } from "sonner";
 import ConfirmModal from "../../components/ConfirmModal";
 import { apiDelete, apiGet } from "../utils/api";
+import { AUTH } from "../constants/apiUrl";
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -30,7 +31,7 @@ export default function ProfilePage() {
     const fetchUser = async () => {
       try {
         const token = sessionStorage.getItem("accessToken") || "";
-        const data = await apiGet<any>("/api/auth/me", token);
+        const data = await apiGet<any>(`${AUTH.ME}`, token);
         setUser(data);
       } catch (err) {
         console.error("Failed to fetch user:", err);
@@ -52,7 +53,7 @@ export default function ProfilePage() {
   const handleDeleteAccount = async () => {
     try {
       const token = sessionStorage.getItem("accessToken") || "";
-      await apiDelete("/api/auth/delete", token);
+      await apiDelete(`${AUTH.DELETE_USER}`, token);
 
       toast.success("Account deleted successfully!");
       localStorage.clear();

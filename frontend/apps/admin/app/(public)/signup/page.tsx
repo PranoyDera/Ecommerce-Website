@@ -1,5 +1,6 @@
 "use client";
 
+import { ADMIN } from "@/app/constants/apiUrl";
 import { apiPost } from "@/app/utils/api";
 import AuthForm from "@/components/Authform";
 import { useState } from "react";
@@ -24,7 +25,7 @@ const handleSignup = async (form: Record<string, string>) => {
   try {
     setLoading(true);
 
-    const res = await apiPost<{ message: string,success:boolean }>("/api/admin/register", form);
+    const res = await apiPost<{ message: string,success:boolean }>(`${ADMIN.REGISTER}`, form);
     console.log("Response:",res);
     if(res.success===true){
     toast.success(res.message);

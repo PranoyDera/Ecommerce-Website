@@ -26,7 +26,7 @@ export function LayoutWithSidebar({
   onLogout,
 }: LayoutWithSidebarProps) {
   const [open, setOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState('dashboard');
+  const [activeTab, setActiveTab] = useState('products');
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const adminName = localStorage.getItem("name");
   const image = localStorage.getItem('image');

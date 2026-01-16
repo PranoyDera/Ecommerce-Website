@@ -3,6 +3,7 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { apiDelete, apiGet, apiPost } from "../utils/api";
 import { number } from "zod";
+import { API_BASE } from "../constants/apiUrl";
 
 type CartItem = {
   productId: string;
@@ -49,7 +50,7 @@ const fetchCart = React.useCallback(async (userId: string) => {
   try {
     if (!userId) return;
 
-    const data = await apiGet<{ items: CartItem[] }>(`/api/cart/${userId}`);
+    const data = await apiGet<{ items: CartItem[] }>(`${API_BASE.CART}/${userId}`);
     const items: CartItem[] = Array.isArray(data.items) ? data.items : [];
     setCart(items);
   } catch (err) {
@@ -61,7 +62,7 @@ const fetchCart = React.useCallback(async (userId: string) => {
 const addToCart = async (userId: string, product: CartItem) => {
   try {
     const data = await apiPost<{ items: CartItem[] }>(
-      `/api/cart/${userId}`,
+      `${API_BASE.CART}/${userId}`,
       product
     );
     setCart(data.items || []);
@@ -73,7 +74,7 @@ const addToCart = async (userId: string, product: CartItem) => {
 const removeFromCart = async (userId: string, productId: string) => {
   try {
     const data = await apiDelete<{ items: CartItem[] }>(
-      `/api/cart/${userId}/${productId}`
+      `${API_BASE.CART}/${userId}/${productId}`
     );
     setCart(data.items || []);
   } catch (err) {
@@ -85,7 +86,7 @@ const clearCart = async (userId: string) => {
   try {
     if (!userId) return;
 
-    await apiDelete(`/api/cart/${userId}`);
+    await apiDelete(`${API_BASE.CART}/${userId}`);
     setCart([]);
   } catch (err) {
     console.error("Error clearing cart:", err);

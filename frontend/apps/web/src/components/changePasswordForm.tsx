@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { useRouter } from "next/navigation";
 import { apiPut } from "@/app/utils/api";
+import { AUTH } from "@/app/constants/apiUrl";
 
 
 export function ChangePasswordForm() {
@@ -33,7 +34,7 @@ const handleSubmit = async (e: React.FormEvent) => {
 
     // ✅ Use apiPut instead of fetch
     await apiPut(
-      "/api/auth/update-password",
+      `${AUTH.UPDATE_PASSWORD}`,
       {
         currentPassword,
         newPassword,

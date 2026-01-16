@@ -9,6 +9,7 @@ import { useOrders } from "@/app/context/orderContext";
 import Loader from "@/components/Loader2";
 import { apiDelete } from "@/app/utils/api";
 import Image from "next/image";
+import { ORDER } from "@/app/constants/apiUrl";
 
 
 
@@ -33,7 +34,7 @@ export default function OrderList() {
   
     try {
       const data = await apiDelete<{ addresses: any[] }>(
-        `/api/orders/${orderId}`,
+        `${ORDER.GET_ORDER}/${orderId}`,
         token
       );
   

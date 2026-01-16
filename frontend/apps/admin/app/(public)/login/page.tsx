@@ -5,6 +5,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { apiPost } from "@/app/utils/api";
+import { ADMIN } from "@/app/constants/apiUrl";
 
 export default function LoginPage() {
   const [loading, setLoading] = useState(false);
@@ -18,7 +19,7 @@ export default function LoginPage() {
         token:string;
         message: string;
         admin: any;
-      }>("/api/admin/login", form);
+      }>(`${ADMIN.LOGIN}`, form);
       if (data.token) sessionStorage.setItem("token", data.token);
       if (data.admin.id) sessionStorage.setItem("adminId", data.admin.id);
       localStorage.setItem("name", data.admin.name);

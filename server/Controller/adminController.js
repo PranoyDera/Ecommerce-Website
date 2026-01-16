@@ -110,6 +110,35 @@ export const loginAdmin = async (req, res) => {
   }
 };
 
+export const getAdminProfile = async (req, res) => {
+  try {
+    const adminId = req.admin._id; // coming from JWT middleware
+
+    const admin = await Admin.findById(adminId).select(
+      "-password -__v"
+    );
+
+    if (!admin) {
+      return res.status(404).json({
+        success: false,
+        message: "Admin not found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      admin,
+    });
+  } catch (error) {
+    console.error("Get Admin Profile Error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server error",
+    });
+  }
+};
+
+
 export const updateAdminProfile = async (req, res) => {
   try {
     const adminId = req.admin._id; // coming from JWT middleware

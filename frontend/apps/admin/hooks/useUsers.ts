@@ -4,6 +4,7 @@ import { useState, useCallback } from "react";
 import { apiGet } from "@/app/utils/api";
 import { toast } from "sonner";
 import { User } from "@/components/UserList"; // adjust path
+import { ADMIN } from "@/app/constants/apiUrl";
 
 export const useUsers = () => {
   const [users, setUsers] = useState<User[]>([]);
@@ -13,7 +14,7 @@ export const useUsers = () => {
     try {
       setLoading(true);
       const token = localStorage.getItem("token");
-      const res = await apiGet("/api/admin/users", token || "");
+      const res = await apiGet(`${ADMIN.GET_USERS}`, token || "");
       setUsers(res?.users || []);
     } catch {
       toast.error("Failed to fetch users");

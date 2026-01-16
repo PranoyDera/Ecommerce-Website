@@ -37,7 +37,7 @@ function ProductCard({ product }: { product: ProductType }) {
     }
 
    await addToCart(userId, {
-  productId: String(product.id),
+  productId: String(product._id),
   title: product.title,
   price: product.price,
   quantity,
@@ -72,7 +72,7 @@ function ProductCard({ product }: { product: ProductType }) {
   }
 
   const orderData = {
-    productId: product.id,
+    productId: product._id,
     title: product.title,
     price: Number(discountPrice), // ✅ use discounted price if available
     quantity,
@@ -113,7 +113,7 @@ function ProductCard({ product }: { product: ProductType }) {
     <>
       <div className="rounded-3xl overflow-hidden shadow-md bg-white flex flex-col transition-transform transform hover:scale-105 hover:shadow-xl p-4 ">
         {/* IMAGE */}
-        <Link href={`/products/${product.id}`}>
+        <Link href={`/products/${product._id}`}>
           <div className="relative w-full h-60">
             <Image
               src={product.images[0]}

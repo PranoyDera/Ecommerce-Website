@@ -12,6 +12,7 @@ import { useCart } from "../context/cartContext";
 import { toast } from "sonner";
 import Loader from "@/components/Loader2";
 import { apiGet } from "../utils/api";
+import { ADDRESS, API_BASE } from "../constants/apiUrl";
 
 // ✅ CartItem (backend schema)
 type CartItem = {
@@ -68,7 +69,7 @@ export default function CartPage() {
   const fetchCart = async () => {
     if (!userId) return;
     try {
-      const data = await apiGet<{ items: CartItem[] }>(`/api/cart/${userId}`);
+      const data = await apiGet<{ items: CartItem[] }>(`${API_BASE.CART}/${userId}`);
       setCart(data);
     } catch (err) {
       console.error("Error fetching cart:", err);
@@ -87,7 +88,7 @@ export default function CartPage() {
       const token = sessionStorage.getItem("accessToken");
       try {
         const data = await apiGet<any[]>(
-          "/api/users/address",
+          `${ADDRESS.ADD_ADDRESS}`,
           token ?? undefined
         );
         setAddresses(data || []);

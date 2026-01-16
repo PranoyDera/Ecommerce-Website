@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Camera } from "lucide-react";
 import { Input } from "../ui/input";
 import {
@@ -9,11 +9,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { apiPut } from "@/app/utils/api";
+import { apiGet, apiPut } from "@/app/utils/api";
 import { toast } from "sonner";
 import { Button } from "../ui/button";
+import { ADMIN } from "@/app/constants/apiUrl";
 
 export default function AdminProfilePage() {
+  const [admin,setAdmin] = useState();
   const adminName = localStorage.getItem("name");
   const gender = localStorage.getItem("gender");
   const email = localStorage.getItem("email");
@@ -42,7 +44,7 @@ export default function AdminProfilePage() {
       const token = sessionStorage.getItem("token");
 
       const res = await apiPut(
-        "/api/admin/profile",
+        `${ADMIN.ADMIN_PROFILE}`,
         {
           name: form.name,
           gender: form.gender,
@@ -64,6 +66,16 @@ export default function AdminProfilePage() {
       toast.error("Failed to update profile");
     }
   };
+
+  const fetchAdmin = async() =>{
+    const token = sessionStorage.getItem('token');
+    const res = apiGet(`${ADMIN.ADMIN_PROFILE}`,token?token:'');
+    console.log("admin:",res);
+  }
+
+  useEffect(()=>{
+    fetchAdmin();
+  },[])
 
   return (
     <div className="h-[96vh] bg-[#f4f6fb] w-full">

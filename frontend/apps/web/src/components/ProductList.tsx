@@ -19,37 +19,6 @@ import {
 import { useSearchParams } from "next/navigation";
 import { apiGet } from "@/app/utils/api";
 
-// Local type for DummyJSON API response
-type DummyJSONProduct = {
-  id: number;
-  title: string;
-  description: string;
-  price: number;
-  thumbnail: string;
-  images: string[];
-  discountPercentage: number;
-  rating: number;
-};
-
-
-
-// Transform DummyJSON -> ProductType
-const transformProducts = (apiProducts: DummyJSONProduct[]): ProductType[] => {
-  return apiProducts.map((p) => {
-    return {
-      id: p.id,
-      title: p.title,
-      description: p.description,
-      price: p.price,
-      sizes: ["s", "m", "l", "xl"], // fake sizes
-      colors: ["black", "white", "blue"], // fake colors
-      images: p.images ?? [p.thumbnail], // array of images
-      thumbnail: p.thumbnail,
-      rating: p.rating,
-      discountPercentage: p.discountPercentage,
-    } as ProductType;
-  });
-};
 
 const ProductList = ({
   category,
@@ -69,17 +38,17 @@ const ProductList = ({
   const sort = searchParams.get("sort") || "newest"; // ✅ read query param
 
   const fetchProducts = async (page: number) => {
-    const skip = (page - 1) * limit;
+    const token = localStorage.getItem("token");
 
-    let url = `https://dummyjson.com/products?limit=${limit}&skip=${skip}`;
+    const res = await apiGet<{
+      products: ProductType[];
+      total: number;
+    }>(
+      `/api/products/?page=${page}&limit=${limit}&category=${category}&sort=${sort}`,
+      token || undefined
+    );
 
-    if (category && category !== "all") {
-      url = `https://dummyjson.com/products/category/${category}?limit=${limit}&skip=${skip}`;
-    }
-
-    const res = await fetch(url);
-    const data = await res.json();
-    return data;
+    return res;
   };
 
   useEffect(() => {
@@ -87,20 +56,8 @@ const ProductList = ({
       setLoading(true);
       try {
         const data = await fetchProducts(page);
-        let sortedProducts = transformProducts(data.products);
 
-        // ✅ Sorting logic
-        if (sort === "asc") {
-          sortedProducts.sort((a, b) => a.price - b.price);
-        } else if (sort === "desc") {
-          sortedProducts.sort((a, b) => b.price - a.price);
-        } else if (sort === "newest") {
-          sortedProducts.sort((a, b) => Number(b.id) - Number(a.id));
-        } else if (sort === "oldest") {
-          sortedProducts.sort((a, b) => Number(a.id) - Number(b.id));
-        }
-
-        setProducts(sortedProducts);
+        setProducts(data.products);
         setTotal(data.total);
       } catch (error) {
         console.error("Error fetching products:", error);
@@ -109,21 +66,24 @@ const ProductList = ({
       }
     };
     loadProducts();
-  }, [page, category, sort]); // ✅ depend on `sort`
+  }, [page, category, sort]);
 
-const fetchAddresses = async () => {
-  const token = sessionStorage.getItem("accessToken");
+  const fetchAddresses = async () => {
+    const token = sessionStorage.getItem("accessToken");
 
-  try {
-    const data = await apiGet<any[]>("/api/users/address", token || undefined);
+    try {
+      const data = await apiGet<any[]>(
+        "/api/users/address",
+        token || undefined
+      );
 
-    setAddresses(data || []);
-    localStorage.setItem("addresses", JSON.stringify(data || []));
-  } catch (err) {
-    console.error("Error fetching addresses:", err);
-    setAddresses([]); // fallback to empty list
-  }
-};
+      setAddresses(data || []);
+      localStorage.setItem("addresses", JSON.stringify(data || []));
+    } catch (err) {
+      console.error("Error fetching addresses:", err);
+      setAddresses([]); // fallback to empty list
+    }
+  };
 
   useEffect(() => {
     fetchAddresses();
@@ -146,7 +106,7 @@ const fetchAddresses = async () => {
         {params === "products" && <Filter />}
         <div className="grid grid-cols-1 md:grid-cols-1 xl:grid-cols-3 2xl:grid-cols-4 gap-12">
           {products.map((product) => (
-            <ProductCard key={product.id} product={product} />
+            <ProductCard key={product._id} product={product} />
           ))}
         </div>
         <Link

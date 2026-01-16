@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import Loader from "../../../components/Loader2";
 import { useCart } from "@/app/context/cartContext";
 import BuyNowModal from "@/components/BuynowModal";
+import { apiGet } from "@/app/utils/api";
 
 
 const ProductPage = () => {
@@ -19,17 +20,30 @@ const ProductPage = () => {
   const { addToCart,addBuyNow, clearBuyNow } = useCart();
   const [showModal, setShowModal] = useState(false);
 
-  // ✅ Fetch single product from DummyJSON
-  useEffect(() => {
-    if (params?.id) {
-      fetch(`https://dummyjson.com/products/${params.id}`)
-        .then((res) => res.json())
-        .then((data) => {
-          setProduct(data);
-          setLoading(false);
-        });
+ useEffect(() => {
+  const fetchProduct = async () => {
+    try {
+      setLoading(true);
+
+      const token = localStorage.getItem("token");
+
+      const data = await apiGet(
+        `/api/products/${params?.id}`,
+        token || undefined
+      );
+
+      setProduct(data);
+    } catch (err) {
+      console.error("Failed to fetch product", err);
+      setProduct(null);
+    } finally {
+      setLoading(false);
     }
-  }, [params?.id]);
+  };
+
+  if (params?.id) fetchProduct();
+}, [params?.id]);
+
 
   if (loading) {
     return (
@@ -59,7 +73,7 @@ const ProductPage = () => {
       }
 
       await addToCart(userId, {
-        productId: product.id,
+        productId: product._id,
         title: product.title,
         price: product.price,
         quantity,
@@ -90,7 +104,7 @@ const ProductPage = () => {
   }
 
   const orderData = {
-    productId: product.id,
+    productId: product._id,
     title: product.title,
     price: Number(discountPrice), // ✅ use discounted price if available
     quantity,

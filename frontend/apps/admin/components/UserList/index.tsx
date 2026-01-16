@@ -12,6 +12,7 @@ import ConfirmationModal from "../ui/ConfirmationModal";
 import { Spinner } from "@/components/ui/spinner";
 import UserDetailModal from "../ui/Card/UserDetailCard";
 import { useUsers } from "@/hooks/useUsers";
+import { ADMIN } from "@/app/constants/apiUrl";
 
 
 type OrderItem = {
@@ -165,7 +166,7 @@ export default function UserList() {
       const token = localStorage.getItem("token");
 
       const res = await apiDelete(
-        `/api/admin/delete/${selectedUserId}`,
+        `${ADMIN.DELETE_USER}/${selectedUserId}`,
         token || ""
       );
 
@@ -191,14 +192,14 @@ export default function UserList() {
   }, []);
 
   return (
-    <div className="bg-neutral-200 rounded-md p-4 gap-4 flex flex-col">
+    <div className="rounded-md p-4 gap-4 flex flex-col">
       <p className="text-xl font-bold">User list</p>
       {pageLoading ? (
         <div className="flex flex-1 items-center justify-center">
           <Spinner className="size-6 text-blue-500" />
         </div>
       ) : (
-        <CustomTable data={users} columns={columns} />
+        <CustomTable data={users} columns={columns} height="225px" className="p-4"/>
       )}
       <ConfirmationModal
         open={open}

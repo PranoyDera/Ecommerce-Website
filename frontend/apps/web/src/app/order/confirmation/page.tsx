@@ -12,6 +12,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/stateful-button";
 import { openRazorpayCheckout } from "@/app/utils/paymentUtils";
 import { apiDelete, apiPost } from "@/app/utils/api";
+import { API_BASE, ORDER } from "@/app/constants/apiUrl";
 
 export default function OrderConfirmation() {
   const router = useRouter();
@@ -161,7 +162,7 @@ useEffect(() => {
           async () => {
             toast.success("Order Placed!");
 
-            await apiPost("/api/orders", {
+            await apiPost(`${ORDER.GET_ORDER}`, {
               ...orderPayload,
               paymentStatus: "Paid",
             });
@@ -184,12 +185,15 @@ useEffect(() => {
       }
 
       // COD Flow
-      await apiPost("/api/orders", orderPayload);
+      await apiPost(`${ORDER.GET_ORDER}`, {
+        ...orderPayload,
+        paymentStatus:'Pending'
+      });
 
       if (checkoutMode === "buyNow") {
         localStorage.removeItem("order");
       } else if (userId) {
-        await apiDelete(`/api/cart/${userId}`);
+        await apiDelete(`${API_BASE.CART}/${userId}`);
         setCart([]);
         await fetchCart(userId);
       }

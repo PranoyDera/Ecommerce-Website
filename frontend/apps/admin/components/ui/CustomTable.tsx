@@ -39,6 +39,9 @@ interface CustomTableProps<TData, TValue> {
   showSearch?: boolean;
   searchColumn?: string;
   showColumnToggle?: boolean;
+  pageSize?:number;
+  onRowSelectionChange?: (selectedRows: TData[]) => void;
+  showPagination?: boolean;
 }
 
 export function CustomTable<TData, TValue>({
@@ -49,6 +52,9 @@ export function CustomTable<TData, TValue>({
   showSearch = true,
   searchColumn = "email",
   showColumnToggle = true,
+  pageSize=10,
+  onRowSelectionChange,
+  showPagination = true,
 }: CustomTableProps<TData, TValue>) {
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
@@ -58,7 +64,7 @@ export function CustomTable<TData, TValue>({
     React.useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = React.useState({});
   const table = useReactTable({
-    data : data ?? [],
+    data: data ?? [],
     columns,
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
@@ -67,19 +73,39 @@ export function CustomTable<TData, TValue>({
     onColumnFiltersChange: setColumnFilters,
     getFilteredRowModel: getFilteredRowModel(),
     onColumnVisibilityChange: setColumnVisibility,
-    onRowSelectionChange: setRowSelection,
+    //onRowSelectionChange: setRowSelection,
+    onRowSelectionChange: (updater) => {
+    setRowSelection(updater);
+
+    const newSelection =
+      typeof updater === "function"
+        ? updater(rowSelection)
+        : updater;
+
+    const selectedRows = table
+      .getFilteredRowModel()
+      .rows.filter(row => newSelection[row.id])
+      .map(row => row.original);
+
+    onRowSelectionChange?.(selectedRows);
+  },
     state: {
       sorting,
       columnFilters,
       columnVisibility,
       rowSelection,
     },
+    initialState: {
+    pagination: {
+      pageSize: pageSize, 
+    },
+  },
   });
 
   return (
-    <div className="bg-white p-4 rounded-sm">
+    <div className="bg-white px-2 rounded-[4px]">
       {(showSearch || showColumnToggle) && (
-        <div className="flex items-center py-4 gap-2">
+        <div className="flex items-center mb-4 gap-2">
           {showSearch && table.getColumn(searchColumn) && (
             <Input
               placeholder={`Filter`}
@@ -92,14 +118,14 @@ export function CustomTable<TData, TValue>({
                   .getColumn(searchColumn)
                   ?.setFilterValue(event.target.value)
               }
-              className="max-w-sm"
+              className="max-w-sm rounded-[4px]"
             />
           )}
 
           {showColumnToggle && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" className="ml-auto">
+                <Button variant="outline" className="ml-auto rounded-[4px]">
                   Columns
                 </Button>
               </DropdownMenuTrigger>
@@ -125,7 +151,7 @@ export function CustomTable<TData, TValue>({
         </div>
       )}
 
-      <div className="rounded-[2px] p-2 border overflow-hidden">
+      <div className="rounded-[2px] border overflow-hidden">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
@@ -187,23 +213,40 @@ export function CustomTable<TData, TValue>({
           </TableBody>
         </Table>
       </div>
-      <div className="flex items-center justify-end space-x-2 py-4">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => table.previousPage()}
-          disabled={!table.getCanPreviousPage()}
-        >
-          Previous
-        </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => table.nextPage()}
-          disabled={!table.getCanNextPage()}
-        >
-          Next
-        </Button>
+      <div className="flex items-center justify-between py-4">
+        {/* Page Info */}
+        { showPagination && <div className="text-sm text-gray-600">
+          Page{" "}
+          <span className="font-medium">
+            {table.getState().pagination.pageIndex + 1}
+          </span>{" "}
+          of <span className="font-medium">{table.getPageCount()}</span>
+        </div>}
+        
+
+        {/* Pagination Buttons */}
+        { showPagination && <div className="flex items-center space-x-2">
+          <Button
+            variant="default"
+            size="sm"
+            onClick={() => table.previousPage()}
+            disabled={!table.getCanPreviousPage()}
+            className="cursor-pointer rounded-[4px] bg-red-500 hover:bg-red-500"
+          >
+            Previous
+          </Button>
+
+          <Button
+            variant="default"
+            size="sm"
+            onClick={() => table.nextPage()}
+            disabled={!table.getCanNextPage()}
+            className="cursor-pointer rounded-[4px] bg-blue-700 hover:bg-blue-700"
+          >
+            Next
+          </Button>
+        </div>}
+       
       </div>
     </div>
   );

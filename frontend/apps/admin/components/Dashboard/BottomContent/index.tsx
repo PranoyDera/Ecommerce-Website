@@ -65,6 +65,7 @@ export default function BottomContent({ topProductsList }: BottomContentProps) {
         data={data}
         showSearch={false}
         showColumnToggle={false}
+        showPagination={false}
       />
     </div>
   );
