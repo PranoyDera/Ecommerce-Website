@@ -11,6 +11,7 @@ import { Button } from "../ui/button";
 import AddProductModal from "./AddProduct";
 import { toast } from "sonner";
 import ConfirmationModal from "../ui/ConfirmationModal";
+import ViewProductModal from "./viewProductModal";
 
 type ProductRow = {
   _id: string;
@@ -19,6 +20,7 @@ type ProductRow = {
   category: string;
   stock: number;
   brand?: string;
+  discountPercentage?:string;
 };
 
 export default function Products() {
@@ -110,12 +112,41 @@ export default function Products() {
       header: "Brand",
     },
     {
+      accessorKey: "createdAt",
+      size: 160,
+      header: ({ column }) => (
+        <Button
+          variant="ghost"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          Created date <ArrowUpDown className="ml-2 h-4 w-4" />
+        </Button>
+      ),
+      cell: ({ getValue }) => {
+        const value = getValue<string>();
+        if (!value) return "—";
+
+        const date = new Date(value);
+        return date.toLocaleDateString("en-IN", {
+          day: "2-digit",
+          month: "short",
+          year: "numeric",
+        });
+      },
+    },
+    {
       id: "actions",
       size: 100,
       header: "Actions",
       cell: ({ row }) => (
         <div className="flex gap-2">
-          <button className="text-blue-600 cursor-pointer">
+          <button
+            className="text-blue-600 cursor-pointer"
+            onClick={() => {
+              setViewProduct(row.original);
+              setViewOpen(true);
+            }}
+          >
             <Eye className="w-5 h-5" />
           </button>
           <button
@@ -141,6 +172,7 @@ export default function Products() {
   const [data, setData] = useState<ProductRow[]>([]);
   const [viewUser, setViewUser] = useState<any | null>();
   const [viewOpen, setViewOpen] = useState(false);
+  const [viewProduct, setViewProduct] = useState<ProductRow | null>(null);
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const [open, setOpen] = useState(false);
   const [isConfirmOpen, setIsConfirmOpen] = useState(false);
@@ -149,16 +181,15 @@ export default function Products() {
   const [editId, setEditid] = useState<string>();
   const [deleteId, setDeleteId] = useState<string>();
   const [selectedProduct, setSelectedProduct] = useState<ProductRow | null>(
-    null
+    null,
   );
 
   const fetchProducts = async () => {
     const token = sessionStorage.getItem("token");
     const response = await apiGet(
       `${API_BASE.PRODUCT}?limit=1000`,
-      token || undefined
+      token || undefined,
     );
-    console.log("Response:", response);
     setData(response?.products);
   };
 
@@ -181,7 +212,7 @@ export default function Products() {
   const handleDelete = async () => {
     setLoading(true);
     const res = await apiDelete(
-      `${PRODUCT.DELETE_PRODUCT}/${deleteId ? deleteId : ""}`
+      `${PRODUCT.DELETE_PRODUCT}/${deleteId ? deleteId : ""}`,
     );
     if (res?.success) {
       toast.success(res?.message);
@@ -195,20 +226,24 @@ export default function Products() {
     }
   };
 
-  const handleBulkDelete = async() => {
-      const ids = selectedRows.map(row => row._id);
-      const res = await apiPost(`${PRODUCT.BULK_DELETE}`,{ids});
-      if(res?.success){
-        toast.success("Items Deleted");
-        fetchProducts();
-      }
-      else{
-        toast.error("delete failed");
-      }
-  }
+  const handleBulkDelete = async () => {
+    const ids = selectedRows.map((row) => row._id);
+    const res = await apiPost(`${PRODUCT.BULK_DELETE}`, { ids });
+    if (res?.success) {
+      toast.success("Items Deleted");
+      fetchProducts();
+    } else {
+      toast.error("delete failed");
+    }
+  };
 
   return (
     <div className="min-h-[96vh] px-4">
+      <ViewProductModal
+        open={viewOpen}
+        onClose={() => setViewOpen(false)}
+        product={viewProduct}
+      />
       <AddProductModal
         open={open}
         onClose={() => {

@@ -73,7 +73,6 @@ export function CustomTable<TData, TValue>({
     onColumnFiltersChange: setColumnFilters,
     getFilteredRowModel: getFilteredRowModel(),
     onColumnVisibilityChange: setColumnVisibility,
-    //onRowSelectionChange: setRowSelection,
     onRowSelectionChange: (updater) => {
     setRowSelection(updater);
 

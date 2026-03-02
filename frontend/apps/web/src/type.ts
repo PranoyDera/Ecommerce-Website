@@ -52,6 +52,9 @@ export type ProductType = {
   thumbnail: string;
   rating: number;
   discountPercentage: number;
+  avgRating: number;
+  numReviews: number;
+  reviews: string[];
   // DummyJSON provides thumbnail
 };
 

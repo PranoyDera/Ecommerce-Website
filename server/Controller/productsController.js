@@ -1,4 +1,18 @@
 import Products from "../Models/Products.js";
+import cloudinary from "../utils/cloudinary.js";
+
+const uploadToCloudinary = (buffer, folder = "products") => {
+  return new Promise((resolve, reject) => {
+    const stream = cloudinary.uploader.upload_stream(
+      { folder },
+      (error, result) => {
+        if (error) reject(error);
+        else resolve(result);
+      }
+    );
+    stream.end(buffer);
+  });
+};
 
 export const getProducts = async (req, res) => {
   try {
@@ -70,8 +84,6 @@ export const createProduct = async (req, res) => {
       stock,
       brand,
       category,
-      thumbnail,
-      images,
       source,
     } = req.body;
 
@@ -82,31 +94,40 @@ export const createProduct = async (req, res) => {
       });
     }
 
-    const formattedPrice = Number(price);
-    const formattedStock = Number(stock);
-    const formattedDiscount = discountPercentage
-      ? Number(discountPercentage)
-      : 0;
-    const formattedRating = rating ? Number(rating) : 0;
+    const thumbnailFile = req.files?.thumbnail?.[0];
+    const imageFiles = req.files?.images || [];
 
-    if (isNaN(formattedPrice) || isNaN(formattedStock)) {
-      return res.status(400).json({
-        success: false,
-        message: "Price and stock must be valid numbers",
-      });
+    let thumbnailUrl = "";
+    let imageUrls = [];
+
+    if (thumbnailFile) {
+      const uploadedThumb = await uploadToCloudinary(
+        thumbnailFile.buffer,
+        "products/thumbnails"
+      );
+      thumbnailUrl = uploadedThumb.secure_url;
+    }
+
+    if (imageFiles.length > 0) {
+      const uploads = await Promise.all(
+        imageFiles.map((file) =>
+          uploadToCloudinary(file.buffer, "products/images")
+        )
+      );
+      imageUrls = uploads.map((u) => u.secure_url);
     }
 
     const product = await Products.create({
       title,
       description,
-      price: formattedPrice,
-      discountPercentage: formattedDiscount,
-      rating: formattedRating,
-      stock: formattedStock,
+      price: Number(price),
+      discountPercentage: discountPercentage ? Number(discountPercentage) : 0,
+      rating: rating ? Number(rating) : 0,
+      stock: Number(stock),
       brand,
       category,
-      thumbnail,
-      images: Array.isArray(images) ? images : [],
+      thumbnail: thumbnailUrl,
+      images: imageUrls,
       source: source || "admin",
     });
 
@@ -127,7 +148,6 @@ export const createProduct = async (req, res) => {
 export const updateProduct = async (req, res) => {
   try {
     const { id } = req.params;
-
     const {
       title,
       description,
@@ -137,18 +157,32 @@ export const updateProduct = async (req, res) => {
       stock,
       brand,
       category,
-      thumbnail,
-      images,
       source,
     } = req.body;
 
     const product = await Products.findById(id);
-
     if (!product) {
-      return res.status(404).json({
-        success: false,
-        message: "Product not found",
-      });
+      return res.status(404).json({ success: false, message: "Product not found" });
+    }
+
+    const thumbnailFile = req.files?.thumbnail?.[0];
+    const imageFiles = req.files?.images || [];
+
+    if (thumbnailFile) {
+      const uploadedThumb = await uploadToCloudinary(
+        thumbnailFile.buffer,
+        "products/thumbnails"
+      );
+      product.thumbnail = uploadedThumb.secure_url;
+    }
+
+    if (imageFiles.length > 0) {
+      const uploads = await Promise.all(
+        imageFiles.map((file) =>
+          uploadToCloudinary(file.buffer, "products/images")
+        )
+      );
+      product.images = uploads.map((u) => u.secure_url);
     }
 
     if (title !== undefined) product.title = title;
@@ -160,9 +194,6 @@ export const updateProduct = async (req, res) => {
     if (stock !== undefined) product.stock = Number(stock);
     if (brand !== undefined) product.brand = brand;
     if (category !== undefined) product.category = category;
-    if (thumbnail !== undefined) product.thumbnail = thumbnail;
-    if (images !== undefined)
-      product.images = Array.isArray(images) ? images : product.images;
     if (source !== undefined) product.source = source;
 
     await product.save();
@@ -232,6 +263,161 @@ export const bulkDeleteProducts = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Failed to delete products",
+    });
+  }
+};
+
+export const addProductReview = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { rating, comment } = req.body;
+
+    const userId = req.user?.id || req.body.userId;
+    const userName = req.user?.userName || req.body.userName;
+
+    if (!rating) {
+      return res.status(400).json({
+        success: false,
+        message: "Rating is required",
+      });
+    }
+
+    if (!userName) {
+      return res.status(400).json({
+        success: false,
+        message: "User name is required",
+      });
+    }
+
+    const product = await Products.findById(id);
+
+    if (!product) {
+      return res.status(404).json({
+        success: false,
+        message: "Product not found",
+      });
+    }
+
+    // 🔁 Check using userId (safer than name)
+    const alreadyReviewed = product.reviews.find(
+      (r) => r.userId?.toString() === userId?.toString()
+    );
+
+    let message = "Review added";
+
+    if (alreadyReviewed) {
+      alreadyReviewed.rating = Number(rating);
+      alreadyReviewed.comment = comment || alreadyReviewed.comment;
+      message = "Review updated";
+    } else {
+      product.reviews.push({
+        userId: userId,      // keep internally
+        user: userName,      // show name
+        rating: Number(rating),
+        comment,
+      });
+    }
+
+    // update counts
+    product.numReviews = product.reviews.length;
+
+    const avg =
+      product.reviews.reduce((acc, item) => acc + item.rating, 0) /
+      product.reviews.length;
+
+    product.avgRating = avg;
+
+    await product.save();
+
+    res.json({
+      success: true,
+      message,
+      avgRating: product.avgRating,
+      numReviews: product.numReviews,
+      reviews: product.reviews,
+    });
+
+  } catch (error) {
+    console.error("Add review error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to add review",
+    });
+  }
+};
+
+export const deleteProductReview = async (req, res) => {
+  try {
+    const { productId, reviewId } = req.params;
+
+    const userId = req.user?.id || req.body.userId;
+
+    if (!productId || !reviewId) {
+      return res.status(400).json({
+        success: false,
+        message: "Product ID and Review ID are required",
+      });
+    }
+
+    const product = await Products.findById(productId);
+
+    if (!product) {
+      return res.status(404).json({
+        success: false,
+        message: "Product not found",
+      });
+    }
+
+    const reviewIndex = product.reviews.findIndex(
+      (r) => r._id.toString() === reviewId.toString()
+    );
+
+    if (reviewIndex === -1) {
+      return res.status(404).json({
+        success: false,
+        message: "Review not found",
+      });
+    }
+
+    // ✅ Optional: Check ownership
+    if (
+      product.reviews[reviewIndex].userId?.toString() !== userId?.toString()
+    ) {
+      return res.status(403).json({
+        success: false,
+        message: "You are not allowed to delete this review",
+      });
+    }
+
+    // 🗑 Remove review
+    product.reviews.splice(reviewIndex, 1);
+
+    // 🔄 Update counts
+    product.numReviews = product.reviews.length;
+
+    if (product.reviews.length > 0) {
+      const avg =
+        product.reviews.reduce((acc, item) => acc + item.rating, 0) /
+        product.reviews.length;
+      product.avgRating = avg;
+    } else {
+      product.avgRating = 0;
+    }
+
+    await product.save();
+
+    res.json({
+      success: true,
+      message: "Review deleted successfully",
+      avgRating: product.avgRating,
+      numReviews: product.numReviews,
+      reviews: product.reviews,
+    });
+  } catch (error) {
+    console.error("Delete review error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to delete review",
     });
   }
 };

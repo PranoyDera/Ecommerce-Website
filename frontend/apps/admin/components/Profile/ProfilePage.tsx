@@ -83,7 +83,7 @@ export default function AdminProfilePage() {
       <div className="h-40 w-full bg-gradient-to-r from-blue-200 to-orange-100 rounded-b-xl" />
 
       {/* Profile Card */}
-      <div className="-mt-20 mx-auto max-w-5xl bg-white rounded-md shadow-sm p-6">
+      <div className="-mt-20 mx-auto w-[70%] bg-white rounded-[4px] shadow-sm p-6">
         {/* Top Section */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
@@ -100,7 +100,7 @@ export default function AdminProfilePage() {
                 src={image ? image : "/userImage.png"}
                 className="w-20 h-20 rounded-full object-cover shadow"
               />
-              <button className="absolute bottom-1 right-1 bg-blue-600 p-1.5 rounded-full"  onClick={() => document.getElementById("avatarUpload")?.click()}>
+              <button className="absolute bottom-1 right-1 bg-blue-600 p-1.5 rounded-full cursor-pointer"  onClick={() => document.getElementById("avatarUpload")?.click()}>
                 <Camera className="w-4 h-4 text-white" />
               </button>
             </div>
@@ -116,7 +116,7 @@ export default function AdminProfilePage() {
             onClick={() => {
               updateProfile();
             }}
-            className="bg-blue-600 text-white px-5 py-2 rounded-sm text-sm cursor-pointer"
+            className="bg-blue-600 hover:bg-blue-600 text-white px-5 py-2 rounded-[4px] text-sm cursor-pointer"
           >
             Save
           </Button>
@@ -130,7 +130,7 @@ export default function AdminProfilePage() {
               placeholder="Name"
               value={form.name}
               onChange={(e) => setForm({ ...form, name: e.target.value })}
-              className="rounded-sm!"
+              className="rounded-[4px] focus-visible:ring-[1px]! focus:border-none! focus:ring-blue-700!"
             />
           </div>
           <div className="flex flex-col gap-2">
@@ -139,10 +139,10 @@ export default function AdminProfilePage() {
               value={form.gender}
               onValueChange={(value) => setForm({ ...form, gender: value })}
             >
-              <SelectTrigger className="w-full rounded-sm">
+              <SelectTrigger className="w-full rounded-[4px] focus-visible:ring-[1px]! focus:border-none! focus:ring-blue-700!">
                 <SelectValue placeholder="Select gender" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="rounded-[4px]">
                 <SelectItem value="male">Male</SelectItem>
                 <SelectItem value="female">Female</SelectItem>
                 <SelectItem value="other">Other</SelectItem>
@@ -159,7 +159,7 @@ export default function AdminProfilePage() {
               placeholder="email"
               value={form.email}
               onChange={(e) => setForm({ ...form, email: e.target.value })}
-              className="w-full rounded-sm"
+              className="rounded-[4px] focus-visible:ring-[1px]! focus:border-none! focus:ring-blue-700!"
             />
           </div>
           <div className="flex flex-col gap-2">
@@ -168,7 +168,7 @@ export default function AdminProfilePage() {
               placeholder="Phone"
               value={form.phone}
               onChange={(e) => setForm({ ...form, phone: e.target.value })}
-              className="w-full rounded-sm"
+              className="rounded-[4px] focus-visible:ring-[1px]! focus:border-none! focus:ring-blue-700!"
             />
           </div>
         </div>

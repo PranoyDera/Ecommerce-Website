@@ -8,8 +8,7 @@ import { toast } from "sonner";
 import Loader from "../../../components/Loader2";
 import { useCart } from "@/app/context/cartContext";
 import BuyNowModal from "@/components/BuynowModal";
-import { apiGet } from "@/app/utils/api";
-
+import { apiGet, apiPost } from "@/app/utils/api";
 
 const ProductPage = () => {
   const params = useParams();
@@ -17,33 +16,32 @@ const ProductPage = () => {
   const [product, setProduct] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [quantity, setQuantity] = useState(1);
-  const { addToCart,addBuyNow, clearBuyNow } = useCart();
+  const { addToCart, addBuyNow, clearBuyNow } = useCart();
   const [showModal, setShowModal] = useState(false);
 
- useEffect(() => {
-  const fetchProduct = async () => {
-    try {
-      setLoading(true);
+  useEffect(() => {
+    const fetchProduct = async () => {
+      try {
+        setLoading(true);
 
-      const token = localStorage.getItem("token");
+        const token = localStorage.getItem("token");
 
-      const data = await apiGet(
-        `/api/products/${params?.id}`,
-        token || undefined
-      );
+        const data = await apiGet(
+          `/api/products/${params?.id}`,
+          token || undefined,
+        );
 
-      setProduct(data);
-    } catch (err) {
-      console.error("Failed to fetch product", err);
-      setProduct(null);
-    } finally {
-      setLoading(false);
-    }
-  };
+        setProduct(data);
+      } catch (err) {
+        console.error("Failed to fetch product", err);
+        setProduct(null);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  if (params?.id) fetchProduct();
-}, [params?.id]);
-
+    if (params?.id) fetchProduct();
+  }, [params?.id]);
 
   if (loading) {
     return (
@@ -60,7 +58,8 @@ const ProductPage = () => {
   // ✅ Discounted Price (DummyJSON has `discountPercentage`)
   const discountPrice = (
     product.price -
-    ((product.price * product.discountPercentage) / 100) + 10
+    (product.price * product.discountPercentage) / 100 +
+    10
   ).toFixed(2);
 
   // ✅ Handle Add to Cart
@@ -94,59 +93,108 @@ const ProductPage = () => {
   };
 
   const handleConfirmOrder = (address: any, paymentMethod: string) => {
-  if (!address) {
-    toast.error("Please select an address");
-    return;
-  }
-  if (!paymentMethod) {
-    toast.error("Please select a payment method");
-    return;
-  }
+    if (!address) {
+      toast.error("Please select an address");
+      return;
+    }
+    if (!paymentMethod) {
+      toast.error("Please select a payment method");
+      return;
+    }
 
-  const orderData = {
-    productId: product._id,
-    title: product.title,
-    price: Number(discountPrice), // ✅ use discounted price if available
-    quantity,
-    image: product.images[0],
-    address,
-    paymentMethod,
+    const orderData = {
+      productId: product._id,
+      title: product.title,
+      price: Number(discountPrice), // ✅ use discounted price if available
+      quantity,
+      image: product.images[0],
+      address,
+      paymentMethod,
+    };
+
+    // ✅ store in context (Buy Now item)
+    addBuyNow(orderData);
+
+    // (optional) still keep localStorage for fallback
+    localStorage.setItem("order", JSON.stringify(orderData));
+    localStorage.setItem("checkoutMode", "buyNow");
+    localStorage.setItem(
+      "subtotal",
+      JSON.stringify((Number(discountPrice) * quantity).toFixed(2)),
+    );
+    localStorage.setItem(
+      "total",
+      JSON.stringify((Number(discountPrice) * quantity).toFixed(2)),
+    );
+    localStorage.setItem("selectedAddress", JSON.stringify(address));
+    localStorage.setItem(
+      "selectedPaymentMethod",
+      JSON.stringify(paymentMethod),
+    );
+
+    if (paymentMethod === "Cash on Delivery") {
+      localStorage.setItem("paymentStatus", "Pending");
+      router.push("/order/confirmation");
+    } else {
+      localStorage.setItem("selectedPaymentMethod", "Online");
+      localStorage.setItem("paymentStatus", "Pending");
+      router.push("/order/confirmation");
+    }
   };
 
-  // ✅ store in context (Buy Now item)
-  addBuyNow(orderData);
+  const handleDeleteReview = async (reviewId: string) => {
+  try {
+    const token = localStorage.getItem("token");
+    const userId = localStorage.getItem("userId");
 
-  // (optional) still keep localStorage for fallback
-  localStorage.setItem("order", JSON.stringify(orderData));
-  localStorage.setItem("checkoutMode", "buyNow");
-  localStorage.setItem("subtotal", JSON.stringify((Number(discountPrice) * quantity).toFixed(2)));
-  localStorage.setItem("total", JSON.stringify((Number(discountPrice) * quantity).toFixed(2)));
-  localStorage.setItem("selectedAddress", JSON.stringify(address));
-  localStorage.setItem("selectedPaymentMethod", JSON.stringify(paymentMethod));
+    if (!token || !userId) {
+      toast.error("Please login first");
+      return;
+    }
 
-  if (paymentMethod === "Cash on Delivery") {
-    localStorage.setItem("paymentStatus", "Pending");
-    router.push("/order/confirmation");
-  } else {
-    localStorage.setItem("selectedPaymentMethod", "Online");
-    localStorage.setItem("paymentStatus", "Pending");
-    router.push("/order/confirmation");
+    const response = await apiPost<{
+      success: boolean;
+      message: string;
+      reviews: any[];
+      avgRating: number;
+      numReviews: number;
+    }>(
+      `/api/products/${product._id}/reviews/${reviewId}`,
+      { userId }, // send userId in body
+      token
+    );
+
+    // ✅ Update UI immediately
+    setProduct((prev: any) => ({
+      ...prev,
+      reviews: response.reviews,
+      avgRating: response.avgRating,
+      numReviews: response.numReviews,
+    }));
+
+    toast.success(response.message || "Review deleted");
+  } catch (error: any) {
+    console.error("Delete review failed:", error);
+    toast.error(error.message || "Failed to delete review");
   }
 };
 
+
   return (
-    <div className="flex flex-col gap-8 lg:flex-row md:gap-12 my-12 w-[85%] mx-auto bg-gray-200 p-4 rounded-3xl">
+    <div className="flex flex-col gap-8 lg:flex-row md:gap-12 my-12 w-[85%] mx-auto bg-gray-200 p-4 rounded-[4px]">
+      <div className="flex flex-col">
+      <div className="flex gap-10">
       {/* LEFT SIDE IMAGES */}
       <div className="w-full lg:w-5/12">
-        <div className="relative h-[500px] w-full shadow-lg rounded-2xl p-4 bg-white">
+        <div className="relative h-[300px] w-full shadow-lg rounded-[4px] p-4 bg-white">
           <Image
             src={product.thumbnail}
             alt={product.title}
             fill
-            className="object-contain rounded-xl"
+            className="object-contain rounded-[4px]"
           />
         </div>
-        <div className="flex gap-3 mt-4 overflow-x-auto">
+        <div className="flex gap-3 mt-4 overflow-x-hidden">
           {product.images.map((img: string, index: number) => (
             <Image
               key={index}
@@ -168,7 +216,7 @@ const ProductPage = () => {
         {/* Price & Discount */}
         <div className="flex items-center gap-4">
           <h2 className="text-2xl font-semibold text-black">
-           ${Number((Number(discountPrice) * quantity - 10).toFixed(2))}
+            ${Number((Number(discountPrice) * quantity - 10).toFixed(2))}
           </h2>
           <p className="line-through text-gray-500">
             ${(product.price * quantity).toFixed(2)}
@@ -240,7 +288,53 @@ const ProductPage = () => {
           </button>
         </div>
       </div>
+      </div>
+       {/* Reviews Section */}
+        <div className="mt-10 bg-white p-4 rounded-md shadow w-full">
+          <h2 className="text-xl font-semibold mb-4">
+            Reviews ({product.numReviews || product.reviews?.length || 0})
+          </h2>
 
+          {product.reviews && product.reviews.length > 0 ? (
+            <div className="flex flex-col gap-4 w-full">
+              {product.reviews.map((review: any, index: number) => (
+                <div
+                  key={review._id || index}
+                  className="border-b pb-3 last:border-b-0"
+                >
+                  <div className="flex items-center justify-between">
+                    <p className="font-medium text-gray-800">
+                      User: {review.user}
+                    </p>
+                    <span className="text-sm text-yellow-600">
+                      ⭐ {review.rating} / 5
+                    </span>
+                  </div>
+                  {review.userId === localStorage.getItem("userId") && (
+          <button
+            onClick={() => handleDeleteReview(review._id)}
+            className="text-red-500 text-xs hover:underline"
+          >
+            Delete
+          </button>
+        )}
+                  <p className="text-gray-700 mt-1">{review.comment}</p>
+
+                  {review.createdAt && (
+                    <p className="text-xs text-gray-400 mt-1">
+                      {new Date(review.createdAt).toLocaleDateString()}
+                    </p>
+                  )}
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-gray-500">
+              No reviews yet. Be the first to review!
+            </p>
+          )}
+        </div>
+        </div>
       {showModal && (
         <BuyNowModal
           onClose={() => setShowModal(false)}

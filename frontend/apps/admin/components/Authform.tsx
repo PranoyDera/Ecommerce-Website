@@ -5,6 +5,7 @@ import { Label } from "./ui/label";
 import { Input } from "./ui/input";
 import { cn } from "../lib/utils";
 import Image from "next/image";
+import { Eye, EyeClosed, EyeOff } from "lucide-react";
 
 interface Field {
   name: string;
@@ -27,7 +28,7 @@ interface AuthFormProps {
   secondaryLabel?: string;
   onSecondaryClick?: () => void;
   secondaryDisabled?: boolean;
-  className:string;
+  className: string;
 }
 
 export default function AuthForm({
@@ -40,11 +41,12 @@ export default function AuthForm({
   secondaryLabel,
   onSecondaryClick,
   secondaryDisabled = false,
-  className
+  className,
 }: AuthFormProps) {
   const [form, setForm] = useState<Record<string, string>>(
-    Object.fromEntries(fields.map((f) => [f.name, ""]))
+    Object.fromEntries(fields.map((f) => [f.name, ""])),
   );
+  const [showPassword, setShowPassword] = useState<Record<string, boolean>>({});
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -56,7 +58,9 @@ export default function AuthForm({
   };
 
   return (
-    <div className={`rounded-md flex items-center justify-center h-[60%] bg-gradient-to-b from-white to-gray-100 dark:from-black dark:to-gray-900 shadow-2xl ${className}`}>
+    <div
+      className={`rounded-md flex items-center justify-center h-[60%] bg-gradient-to-b from-white to-gray-100 dark:from-black dark:to-gray-900 shadow-2xl ${className}`}
+    >
       <div className="shadow-input mx-auto md:w-full w-[80%] max-w-md rounded-2xl bg-white p-6 md:rounded-2xl md:p-8 dark:bg-black">
         <div className="flex justify-center mb-4">
           <Image src="/PRO-CART.png" alt="logo" width={200} height={150} />
@@ -101,14 +105,38 @@ export default function AuthForm({
 
               {/* DEFAULT INPUT FIELD */}
               {["text", "email", "password"].includes(field.type) && (
-                <Input
-                  id={field.name}
-                  name={field.name}
-                  type={field.type}
-                  placeholder={field.placeholder}
-                  value={form[field.name]}
-                  onChange={handleChange}
-                />
+                <div className="relative">
+                  <Input
+                    id={field.name}
+                    name={field.name}
+                    type={
+                      field.type === "password"
+                        ? showPassword[field.name]
+                          ? "text"
+                          : "password"
+                        : field.type
+                    }
+                    placeholder={field.placeholder}
+                    value={form[field.name]}
+                    onChange={handleChange}
+                    className={field.type === "password" ? "pr-10" : ""}
+                  />
+
+                  {field.type === "password" && (
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setShowPassword((prev) => ({
+                          ...prev,
+                          [field.name]: !prev[field.name],
+                        }))
+                      }
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-black dark:hover:text-white"
+                    >
+                      {showPassword[field.name] ? <EyeOff className="h-4 w-4"/> : <Eye className="h-4 w-4"/>}
+                    </button>
+                  )}
+                </div>
               )}
             </LabelInputContainer>
           ))}

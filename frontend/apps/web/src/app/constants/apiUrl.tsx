@@ -57,5 +57,6 @@ export const PRODUCT = {
     CREATE_PRODUCT : `${API_BASE.PRODUCT}/create`,
     UPDATE_PRODUCT:`${API_BASE.PRODUCT}/update`,
     DELETE_PRODUCT:`${API_BASE.PRODUCT}/delete`,
-    BULK_DELETE:`${API_BASE.PRODUCT}/bulk-delete`
+    BULK_DELETE:`${API_BASE.PRODUCT}/bulk-delete`,
+    REVIEW:`${API_BASE.PRODUCT}/review`
 }

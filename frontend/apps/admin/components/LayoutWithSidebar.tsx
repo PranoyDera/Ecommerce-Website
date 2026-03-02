@@ -7,35 +7,42 @@ import { Handbag } from "lucide-react";
 import Profile from "./Profile";
 import { IconLogout } from "@tabler/icons-react";
 import ConfirmationModal from "./ui/ConfirmationModal";
+import { useRouter, usePathname } from "next/navigation";
+import Link from "next/link";
 
 type LinkItem = {
   label: string;
   key: string;
   icon: React.ReactNode;
+  href: string;
 };
 
 type LayoutWithSidebarProps = {
   links: LinkItem[];
   tabs: Record<string, React.ReactNode>;
   onLogout?: () => void;
+  children: React.ReactNode;
 };
 
 export function LayoutWithSidebar({
   links,
   tabs,
   onLogout,
+  children
 }: LayoutWithSidebarProps) {
   const [open, setOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState('products');
+  const [activeTab, setActiveTab] = useState("profile");
   const [showLogoutModal, setShowLogoutModal] = useState(false);
   const adminName = localStorage.getItem("name");
-  const image = localStorage.getItem('image');
+  const image = localStorage.getItem("image");
+  const router = useRouter();
+  const pathname = usePathname();
 
   return (
     <div
       className={cn(
         "flex h-screen w-full overflow-hidden border bg-gray-100 dark:bg-neutral-800",
-        "md:flex-row flex-col"
+        "md:flex-row flex-col",
       )}
     >
       {/* Sidebar */}
@@ -50,8 +57,9 @@ export function LayoutWithSidebar({
                   key={link.key}
                   link={{
                     ...link,
-                    href: "#",
-                    onClick: () => setActiveTab(link.key),
+                    href: link.href,
+                    onClick: () => router.push(link.href),
+                    active: pathname === link.href,
                   }}
                 />
               ))}
@@ -61,7 +69,7 @@ export function LayoutWithSidebar({
                     onClick={() => setShowLogoutModal(true)}
                     className={cn(
                       "cursor-pointer flex w-full rounded-lg py-2 pl-1 text-red-600 transition hover:bg-red-50 dark:hover:bg-red-900/20",
-                      open ? "justify-start gap-3" : "justify-center"
+                      open ? "justify-start gap-3" : "justify-center",
                     )}
                   >
                     <IconLogout className="h-5 w-5" />
@@ -74,12 +82,14 @@ export function LayoutWithSidebar({
             </div>
           </div>
           <div className="mb-20 dark:border-neutral-700 overflow-hidden">
+            <Link href='/profile'>
             <Profile
               open={open}
               name={adminName}
-              imageUrl={image?image:'/userImage.png'}
+              imageUrl={image ? image : "/userImage.png"}
               onClick={() => setActiveTab("profile")}
             />
+            </Link>
           </div>
         </SidebarBody>
       </Sidebar>
@@ -99,7 +109,7 @@ export function LayoutWithSidebar({
           variant="danger"
         />
         <div className="flex w-full flex-1 flex-col gap-2 border border-neutral-200 bg-white p-2 md:px-4 dark:border-neutral-700 dark:bg-neutral-900">
-          {tabs[activeTab]}
+          {children}
         </div>
       </main>
     </div>

@@ -16,7 +16,6 @@ import { apiPost, apiPut } from "@/app/utils/api";
 import { PRODUCT } from "@/app/constants/apiUrl";
 import { toast } from "sonner";
 
-
 type AddProductModalProps = {
   open: boolean;
   onClose: () => void;
@@ -33,8 +32,9 @@ const EMPTY_FORM = {
   stock: "",
   brand: "",
   description: "",
-  thumbnail: "",
-  images: [""],
+  discountPercentage:"",
+  thumbnail: null as File | null,
+  images: [] as File[],
 };
 
 export default function AddProductModal({
@@ -63,52 +63,46 @@ export default function AddProductModal({
   const update = (key: string, value: any) =>
     setForm((prev) => ({ ...prev, [key]: value }));
 
-  const updateImage = (index: number, value: string) => {
-    setForm((prev) => {
-      const images = [...prev.images];
-      images[index] = value;
-      return { ...prev, images };
-    });
-  };
-
   const addImage = () =>
     setForm((prev) => ({ ...prev, images: [...prev.images, ""] }));
 
-  const removeImage = (index: number) =>
-    setForm((prev) => ({
-      ...prev,
-      images: prev.images.filter((_, i) => i !== index),
-    }));
+  const formatPayload = () => {
+    const fd = new FormData();
 
-  const formatPayload = () => ({
-    title: form.title.trim(),
-    brand: form.brand.trim(),
-    description: form.description.trim(),
-    category: form.category,
-    price: Number(form.price),
-    stock: Number(form.stock),
-    thumbnail: form.thumbnail,
-    images: form.images.filter(Boolean),
-  });
+    fd.append("title", form.title.trim());
+    fd.append("brand", form.brand.trim());
+    fd.append("description", form.description.trim());
+    fd.append("discountPercentage",form.discountPercentage.trim());
+    fd.append("category", form.category);
+    fd.append("price", String(Number(form.price)));
+    fd.append("stock", String(Number(form.stock)));
+    if (form.thumbnail) {
+      fd.append("thumbnail", form.thumbnail);
+    }
+    form.images.forEach((img) => {
+      fd.append("images", img);
+    });
+    return fd;
+  };
 
   /* ---------------- API HANDLERS ---------------- */
 
   const handleAddProduct = async () => {
     try {
       setLoading(true);
-      const res = await apiPost(`${PRODUCT.CREATE_PRODUCT}`,formatPayload());
+      const res = await apiPost(`${PRODUCT.CREATE_PRODUCT}`, formatPayload());
 
-      if(res?.success){
+      if (res?.success) {
         toast.success(res?.message);
         onSuccess();
-      }
-      else{
+      } else {
         toast.error(res?.message);
       }
 
       onClose();
     } catch (error) {
       console.error(error);
+      toast.error(error?.message);
     } finally {
       setLoading(false);
     }
@@ -120,18 +114,21 @@ export default function AddProductModal({
     try {
       setLoading(true);
 
-      const res = await apiPut(`${PRODUCT.UPDATE_PRODUCT}/${editId}`,formatPayload())
-      if(res?.success){
+      const res = await apiPut(
+        `${PRODUCT.UPDATE_PRODUCT}/${editId}`,
+        formatPayload(),
+      );
+      if (res?.success) {
         toast.success(res?.message);
         onSuccess();
-      }
-      else{
+      } else {
         toast.error(res?.message);
       }
 
       onClose();
     } catch (error) {
       console.error(error);
+      toast.error(error?.message);
     } finally {
       setLoading(false);
     }
@@ -146,52 +143,61 @@ export default function AddProductModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-      <div className="w-[95%] max-w-3xl rounded-2xl bg-white shadow-2xl overflow-hidden">
+      <div className="w-[95%] max-w-3xl rounded-[4px] bg-white shadow-2xl overflow-hidden">
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b bg-gradient-to-r from-blue-50 to-white">
           <h2 className="text-lg font-semibold">
             {editId ? "Edit Product" : "Add New Product"}
           </h2>
           <button onClick={onClose}>
-            <X className="h-5 w-5 text-gray-500 hover:text-black" />
+            <X className="h-5 w-5 text-gray-500 hover:text-black cursor-pointer" />
           </button>
         </div>
 
         {/* Body */}
-        <div className="p-6 max-h-[70vh] overflow-y-auto space-y-6">
+        <div className="px-6 py-4 max-h-[70vh] overflow-y-auto space-y-3">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Input
               placeholder="Product name"
               value={form.title}
               onChange={(e) => update("title", e.target.value)}
+              className="rounded-[4px] focus-visible:ring-[1px]! focus:border-none! focus:ring-blue-700!"
             />
             <Input
               placeholder="Brand"
               value={form.brand}
               onChange={(e) => update("brand", e.target.value)}
+              className="rounded-[4px] focus-visible:ring-[1px]! focus:border-none! focus:ring-blue-700!"
             />
             <Input
               type="number"
               placeholder="Price"
               value={form.price}
               onChange={(e) => update("price", e.target.value)}
+              className="rounded-[4px] focus-visible:ring-[1px]! focus:border-none! focus:ring-blue-700!"
             />
             <Input
               type="number"
               placeholder="Stock"
               value={form.stock}
               onChange={(e) => update("stock", e.target.value)}
+              className="rounded-[4px] focus-visible:ring-[1px]! focus:border-none! focus:ring-blue-700!"
             />
           </div>
 
+          <div className="flex gap-4">
           <Select
             value={form.category}
-            onValueChange={(val) => update("category", val)}
+            onValueChange={(val) => update("category", val)
+            }
           >
-            <SelectTrigger>
+            <SelectTrigger className="rounded-[4px] focus-visible:ring-[1px]! focus:border-none! focus:ring-blue-700! w-1/2">
               <SelectValue placeholder="Select category" />
             </SelectTrigger>
-            <SelectContent position="popper" className="max-h-56">
+            <SelectContent
+              position="popper"
+              className="max-h-60 ml-18 rounded-[4px]"
+            >
               <div className="max-h-56 overflow-y-auto p-1">
                 {categories.map((cat) => (
                   <SelectItem key={cat} value={cat}>
@@ -201,41 +207,54 @@ export default function AddProductModal({
               </div>
             </SelectContent>
           </Select>
+          <Input
+              type="number"
+              placeholder="Discount Percentage"
+              value={form.discountPercentage}
+              onChange={(e) => update("discountPercentage", e.target.value)}
+              className="rounded-[4px] focus-visible:ring-[1px]! focus:border-none! focus:ring-blue-700! w-1/2"
+            />
+          </div>
 
           <Textarea
             placeholder="Product description"
             value={form.description}
             onChange={(e) => update("description", e.target.value)}
+            className="rounded-[4px] focus-visible:ring-[1px]! focus:border-none! focus:ring-blue-700!"
           />
 
           <Input
-            placeholder="Thumbnail Image URL"
-            value={form.thumbnail}
-            onChange={(e) => update("thumbnail", e.target.value)}
+            type="file"
+            accept="image/*"
+            onChange={(e) => update("thumbnail", e.target.files?.[0] || null)}
+            className="rounded-[4px] focus-visible:ring-[1px]! focus:border-none focus:ring-blue-700!"
           />
 
           {/* Images */}
-          <div className="rounded-lg border bg-gray-50 p-4 space-y-3">
-            {form.images.map((img, i) => (
-              <div key={i} className="flex gap-2">
-                <Input
-                  value={img}
-                  placeholder={`Image ${i + 1}`}
-                  onChange={(e) => updateImage(i, e.target.value)}
-                />
-                {form.images.length > 1 && (
-                  <Button
-                    size="icon"
-                    variant="ghost"
-                    onClick={() => removeImage(i)}
-                  >
-                    <Trash2 className="w-4 h-4 text-red-500" />
-                  </Button>
-                )}
-              </div>
-            ))}
+          <div className="rounded-[4px] border bg-gray-50 p-4 space-y-3">
+            <Input
+              type="file"
+              accept="image/*"
+              multiple
+              onChange={(e) => {
+                const files = e.target.files ? Array.from(e.target.files) : [];
+                update("images", files);
+              }}
+              className="rounded-[4px] focus-visible:ring-[1px]! focus:border-none! focus:ring-blue-700!"
+            />
 
-            <Button variant="outline" size="sm" onClick={addImage}>
+            {form.images.length > 0 && (
+              <div className="text-sm text-gray-600">
+                {form.images.length} image(s) selected
+              </div>
+            )}
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={addImage}
+              className="rounded-[4px] focus-visible:ring-[1px]! focus:border-none! focus:ring-blue-700!"
+            >
               <Plus className="w-4 h-4 mr-2" />
               Add image
             </Button>
@@ -245,7 +264,7 @@ export default function AddProductModal({
         {/* Footer */}
         <div className="flex justify-end gap-3 px-6 py-4 border-t bg-gray-50">
           <Button
-            className="bg-red-500 hover:bg-red-700 px-6"
+            className="bg-red-600 hover:bg-red-700 px-6 rounded-[4px] cursor-pointer"
             onClick={onClose}
             disabled={loading}
           >
@@ -253,7 +272,7 @@ export default function AddProductModal({
           </Button>
 
           <Button
-            className="bg-blue-600 hover:bg-blue-700 px-6"
+            className="bg-blue-600 hover:bg-blue-700 px-6 rounded-[4px] cursor-pointer"
             onClick={handleSubmit}
             disabled={loading}
           >

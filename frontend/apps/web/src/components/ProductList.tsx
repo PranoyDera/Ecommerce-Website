@@ -35,7 +35,7 @@ const ProductList = ({
   const limit = 30;
 
   const searchParams = useSearchParams();
-  const sort = searchParams.get("sort") || "newest"; // ✅ read query param
+  const sort = searchParams.get("sort") || "newest"; 
 
   const fetchProducts = async (page: number) => {
     const token = localStorage.getItem("token");

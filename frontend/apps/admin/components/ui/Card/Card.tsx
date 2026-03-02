@@ -7,6 +7,7 @@ interface StatCardProps {
   value: string | number;
   change?: string;
   changeType?: "positive" | "negative" | "neutral";
+  onClick?: () => void;
 }
 
 export default function StatCard({
@@ -15,6 +16,7 @@ export default function StatCard({
   value,
   change,
   changeType = "neutral",
+  onClick,
 }: StatCardProps) {
   const changeStyles = {
     positive: "bg-green-50 text-green-600 border-green-200",
@@ -24,11 +26,17 @@ export default function StatCard({
 
   return (
     <div
-      className="
+      onClick={onClick}
+      role={onClick ? "button" : undefined}
+      tabIndex={onClick ? 0 : undefined}
+      className={cn(
+        `
         group relative w-full rounded-sm p-[1.2px]
         bg-gradient-to-r from-indigo-500 via-sky-500 to-emerald-500
         transition-all duration-300 hover:-translate-y-1
-      "
+        `,
+        onClick && "cursor-pointer"
+      )}
     >
       {/* Inner Card */}
       <div className="rounded-sm bg-white p-5 shadow-sm transition-shadow duration-300 group-hover:shadow-lg">
@@ -40,12 +48,8 @@ export default function StatCard({
 
           {/* Text */}
           <div>
-            <p className="text-sm font-medium text-gray-500">
-              {title}
-            </p>
-            <h3 className="mt-1 text-3xl font-semibold text-gray-900">
-              {value}
-            </h3>
+            <p className="text-sm font-medium text-gray-500">{title}</p>
+            <h3 className="mt-1 text-3xl font-semibold text-gray-900">{value}</h3>
           </div>
 
           {/* Change Badge */}

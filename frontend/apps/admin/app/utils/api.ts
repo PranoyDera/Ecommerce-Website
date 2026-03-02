@@ -19,16 +19,18 @@ export async function apiGet<T>(endpoint: string, token?: string | undefined): P
 
 export async function apiPost<T>(
   endpoint: string,
-  body: Record<string, unknown>,
+  body: any,
   token?: string
 ): Promise<T> {
+  const isFormData = body instanceof FormData;
+
   const res = await fetch(`${API_BASE_URL}${endpoint}`, {
     method: "POST",
     headers: {
-      "Content-Type": "application/json",
+      ...(isFormData ? {} : { "Content-Type": "application/json" }),
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
     },
-    body: JSON.stringify(body),
+    body: isFormData ? body : JSON.stringify(body),
   });
 
   const data = await res.json();
@@ -44,16 +46,18 @@ export async function apiPost<T>(
 
 export async function apiPut<T>(
   endpoint: string,
-  body: Record<string, unknown>,
+  body: any,
   token?: string
 ): Promise<T> {
+  const isFormData = body instanceof FormData;
+
   const res = await fetch(`${API_BASE_URL}${endpoint}`, {
     method: "PUT",
     headers: {
-      "Content-Type": "application/json",
+      ...(isFormData ? {} : { "Content-Type": "application/json" }),
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
     },
-    body: JSON.stringify(body),
+    body: isFormData ? body : JSON.stringify(body),
   });
 
   const data = await res.json();

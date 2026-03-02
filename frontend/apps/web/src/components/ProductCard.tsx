@@ -9,17 +9,29 @@ import useCartStore from "../app/Stores/cartStore";
 import { useRouter } from "next/navigation";
 import BuyNowModal from "./BuynowModal";
 import { useCart } from "@/app/context/cartContext";
-import {toast} from "sonner";
+import { toast } from "sonner";
 import { openRazorpayCheckout } from "@/app/utils/paymentUtils";
+import ReviewModal from "./ReviewModal";
+import { apiPost } from "@/app/utils/api";
+
+
+type AddReviewResponse = {
+  success: boolean;
+  message: string;
+  avgRating?: number;
+  numReviews?: number;
+};
+
 
 function ProductCard({ product }: { product: ProductType }) {
   const [quantity, setQuantity] = useState(1);
   const [showModal, setShowModal] = useState(false);
+  const [showReviewModal,setShowReviewModal] = useState(false);
   const [addresses, setAddresses] = useState<any[]>([]);
   const [selectedAddress, setSelectedAddress] = useState<string | null>(null);
   const [paymentMethod, setPaymentMethod] = useState<string | null>(null);
-  const { addToCart,addBuyNow } = useCart();
-//  const { addToCart } = useCartStore();
+  const { addToCart, addBuyNow } = useCart();
+  //  const { addToCart } = useCartStore();
   const router = useRouter();
 
   // Load addresses from localStorage
@@ -29,6 +41,93 @@ function ProductCard({ product }: { product: ProductType }) {
   }, []);
 
   const handleAddToCart = async () => {
+    try {
+      const userId = localStorage.getItem("userId");
+      if (!userId) {
+        toast.error("Please login first!");
+        return;
+      }
+
+      await addToCart(userId, {
+        productId: String(product._id),
+        title: product.title,
+        price: product.price,
+        quantity,
+        image: product.images[0],
+        discountPercentage: product.discountPercentage,
+      });
+
+      toast.success(`${quantity} item(s) added to cart`);
+    } catch (error) {
+      console.error("Add to cart failed:", error);
+      toast.error("Failed to add to cart");
+    }
+  };
+
+  const discountPrice = (
+    product.price -
+    (product.price * product.discountPercentage) / 100 +
+    10
+  ).toFixed(2);
+  const handleBuyNow = () => {
+    setShowModal(true);
+  };
+
+  const handleConfirmOrder = (address: any, paymentMethod: string) => {
+    if (!address) {
+      toast.error("Please select an address");
+      return;
+    }
+    if (!paymentMethod) {
+      toast.error("Please select a payment method");
+      return;
+    }
+
+    const orderData = {
+      productId: product._id,
+      title: product.title,
+      price: Number(discountPrice), // ✅ use discounted price if available
+      quantity,
+      image: product.images[0],
+      address,
+      paymentMethod,
+    };
+
+    // ✅ store in context (Buy Now item)
+    addBuyNow(orderData);
+
+    // (optional) still keep localStorage for fallback
+    localStorage.setItem("order", JSON.stringify(orderData));
+    localStorage.setItem("checkoutMode", "buyNow");
+    localStorage.setItem(
+      "subtotal",
+      JSON.stringify((Number(discountPrice) * quantity).toFixed(2)),
+    );
+    localStorage.setItem(
+      "total",
+      JSON.stringify((Number(discountPrice) * quantity).toFixed(2)),
+    );
+    localStorage.setItem("selectedAddress", JSON.stringify(address));
+    localStorage.setItem(
+      "selectedPaymentMethod",
+      JSON.stringify(paymentMethod),
+    );
+
+    if (paymentMethod === "Cash on Delivery") {
+      localStorage.setItem("paymentStatus", "Pending");
+      router.push("/order/confirmation");
+    } else {
+      localStorage.setItem("selectedPaymentMethod", "Online");
+      localStorage.setItem("paymentStatus", "Pending");
+      router.push("/order/confirmation");
+    }
+  };
+
+  const increaseQuantity = () => setQuantity((prev) => prev + 1);
+  const decreaseQuantity = () =>
+    setQuantity((prev) => (prev > 1 ? prev - 1 : 1));
+
+ const handleSubmitReview = async (data: { rating: number; comment: string }) => {
   try {
     const userId = localStorage.getItem("userId");
     if (!userId) {
@@ -36,78 +135,30 @@ function ProductCard({ product }: { product: ProductType }) {
       return;
     }
 
-   await addToCart(userId, {
-  productId: String(product._id),
-  title: product.title,
-  price: product.price,
-  quantity,
-  image: product.images[0],
-  discountPercentage: product.discountPercentage,
-});
+    const token = localStorage.getItem("token") || undefined;
 
+    const res = await apiPost<AddReviewResponse>(
+      `/api/products/review/${product._id}`,
+      {
+        rating: data.rating,
+        comment: data.comment,
+        userId,
+      },
+      token
+    );
 
-    toast.success(`${quantity} item(s) added to cart`);
-  } catch (error) {
-    console.error("Add to cart failed:", error);
-    toast.error("Failed to add to cart");
+    toast.success(res.message || "Review submitted successfully!");
+    setShowReviewModal(false);
+  } catch (error: any) {
+    console.error("Submit review error:", error);
+    toast.error(error.message || "Failed to submit review");
   }
 };
 
-  const discountPrice = (
-    product.price -
-    ((product.price * product.discountPercentage) / 100) + 10
-  ).toFixed(2);
-  const handleBuyNow = () => {
-    setShowModal(true);
-  };
-
-  const handleConfirmOrder = (address: any, paymentMethod: string) => {
-  if (!address) {
-    toast.error("Please select an address");
-    return;
-  }
-  if (!paymentMethod) {
-    toast.error("Please select a payment method");
-    return;
-  }
-
-  const orderData = {
-    productId: product._id,
-    title: product.title,
-    price: Number(discountPrice), // ✅ use discounted price if available
-    quantity,
-    image: product.images[0],
-    address,
-    paymentMethod,
-  };
-
-  // ✅ store in context (Buy Now item)
-  addBuyNow(orderData);
-
-  // (optional) still keep localStorage for fallback
-  localStorage.setItem("order", JSON.stringify(orderData));
-  localStorage.setItem("checkoutMode", "buyNow");
-  localStorage.setItem("subtotal", JSON.stringify((Number(discountPrice) * quantity).toFixed(2)));
-  localStorage.setItem("total", JSON.stringify((Number(discountPrice) * quantity).toFixed(2)));
-  localStorage.setItem("selectedAddress", JSON.stringify(address));
-  localStorage.setItem("selectedPaymentMethod", JSON.stringify(paymentMethod));
-
-  if (paymentMethod === "Cash on Delivery") {
-    localStorage.setItem("paymentStatus", "Pending");
-    router.push("/order/confirmation");
-  } else {
-    localStorage.setItem("selectedPaymentMethod", "Online");
-    localStorage.setItem("paymentStatus", "Pending");
-    router.push("/order/confirmation");
-  }
-};
-
-
-  const increaseQuantity = () => setQuantity((prev) => prev + 1);
-  const decreaseQuantity = () =>
-    setQuantity((prev) => (prev > 1 ? prev - 1 : 1));
-
-  
+const displayRating =
+  product.avgRating && product.avgRating > 0
+    ? product.avgRating
+    : product.rating;
 
   return (
     <>
@@ -115,12 +166,18 @@ function ProductCard({ product }: { product: ProductType }) {
         {/* IMAGE */}
         <Link href={`/products/${product._id}`}>
           <div className="relative w-full h-60">
-            <Image
-              src={product.images[0]}
-              alt={product.title}
-              fill
-              className="object-contain p-4"
-            />
+            {product?.images?.length > 0 && product.images[0] ? (
+              <Image
+                src={product.images[0]}
+                alt={product.title || "Product image"}
+                fill
+                className="object-contain p-4"
+              />
+            ) : (
+              <div className="flex items-center justify-center w-full h-full bg-gray-100 text-gray-400 text-sm">
+                No image available
+              </div>
+            )}
           </div>
         </Link>
 
@@ -143,9 +200,9 @@ function ProductCard({ product }: { product: ProductType }) {
 
           {/* Rating + Discount */}
           <div className="flex justify-between items-center text-xs mt-2">
-            <span className="flex items-center gap-1 text-yellow-500">
-              <Star size={14} /> {product.rating?.toFixed(1) ?? "N/A"}
-            </span>
+            <button className="flex items-center gap-1 text-yellow-500" onClick={()=>{setShowReviewModal(true)}}>
+              <Star size={14} /> {displayRating?.toFixed(1) ?? "N/A"}
+            </button>
             {product.discountPercentage && (
               <span className="text-green-600 font-medium">
                 {product.discountPercentage}% OFF
@@ -174,7 +231,7 @@ function ProductCard({ product }: { product: ProductType }) {
 
           {/* Buttons */}
           <button
-            onClick={()=>handleAddToCart()}
+            onClick={() => handleAddToCart()}
             className="mt-4 bg-black text-white py-2 rounded-lg text-sm font-medium hover:bg-gray-800 transition cursor-pointer"
           >
             Add to Cart
@@ -190,9 +247,16 @@ function ProductCard({ product }: { product: ProductType }) {
 
       {/* MODAL */}
       {showModal && (
-         <BuyNowModal
+        <BuyNowModal
           onClose={() => setShowModal(false)}
           onConfirm={handleConfirmOrder}
+        />
+      )}
+      {showReviewModal && (
+        <ReviewModal
+          isOpen={showReviewModal}
+          onClose={() => setShowReviewModal(false)}
+          onSubmit={handleSubmitReview}
         />
       )}
     </>
